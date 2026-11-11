@@ -102,8 +102,9 @@ Suite, por exemplo) roda em uma caixa Kali da Pandora.
 1. Baixe a ISO em [Releases](https://github.com/Daniel-Pereira-Linux/milizos/releases/latest).
    A ISO passa do limite de 2 GB por arquivo do GitHub, entao vai em duas partes. Junte e confira:
    ```bash
-   cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso
-   sha256sum -c MilizOS-2.0-x86_64.iso.sha256
+   curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
+     && cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso \
+     && sha256sum -c MilizOS-2.0-x86_64.iso.sha256 && rm MilizOS-2.0-x86_64.iso.part-*
    ```
 2. Grave em um pendrive:
    ```bash

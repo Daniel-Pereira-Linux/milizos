@@ -201,15 +201,17 @@ gera os pacotes              (repositório dnf)              dnf upgrade --repo=
 <section id="baixar"><div class="wrap two">
 <div><h2>Baixar e instalar</h2>
 <ol class="steps">
-<li>Baixe a ISO em <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Releases</a> e confira o SHA-256.</li>
+<li>Baixe com o comando ao lado (ele junta as partes e confere o SHA-256), ou pegue os arquivos em <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Releases</a>.</li>
 <li>Grave em um pendrive (a ISO é híbrida: BIOS e UEFI, com Secure Boot).</li>
 <li>Inicie pelo pendrive. O sistema sobe em modo live e o instalador abre sozinho.</li>
 <li>Escolha disco, usuário e perfil: <b>SOC</b>, <b>Redes</b> ou <b>Sensor</b>.</li>
 </ol>
-<p class="sub" style="margin-top:14px">Requisitos: x86-64, 4 GB de RAM, 30 GB de disco.</p></div>
-<pre><span class="c"># conferir a integridade</span>
-cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso
-sha256sum -c MilizOS-2.0-x86_64.iso.sha256
+<p class="sub" style="margin-top:14px">Requisitos: x86-64, 4 GB de RAM, 30 GB de disco.</p>
+<p><button id="copiardl" type="button" class="btn pri" style="cursor:pointer">Copiar o comando de download</button></p></div>
+<pre id="dl"><span class="c"># baixar, juntar e conferir: copie e cole no terminal</span>
+curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
+  &amp;&amp; cat MilizOS-2.0-x86_64.iso.part-* &gt; MilizOS-2.0-x86_64.iso \
+  &amp;&amp; sha256sum -c MilizOS-2.0-x86_64.iso.sha256 &amp;&amp; rm MilizOS-2.0-x86_64.iso.part-*
 
 <span class="c"># gravar no pendrive (troque sdX pelo seu dispositivo)</span>
 sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX \
@@ -237,6 +239,7 @@ qemu-system-x86_64 -enable-kvm -m 4G -smp 4 \
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
 document.querySelectorAll('.tabs button').forEach(o=>o.setAttribute('aria-selected',o===b));
 document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.p))}));
+document.getElementById('copiardl').addEventListener('click',e=>{const t=document.getElementById('dl').textContent.split('\n').slice(1,4).join('\n');navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>{e.target.textContent='Copiado';setTimeout(()=>e.target.textContent='Copiar o comando de download',1800)})});
 document.getElementById('copiar').addEventListener('click',e=>{const t=document.getElementById('pix').textContent;
 (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{e.target.textContent='Copiado';setTimeout(()=>e.target.textContent='Copiar chave Pix',1800)}).catch(()=>{const r=document.createRange();r.selectNode(document.getElementById('pix'));getSelection().removeAllRanges();getSelection().addRange(r)})});
 </script>

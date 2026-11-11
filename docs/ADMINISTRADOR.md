@@ -25,8 +25,9 @@ Uso do dia a dia: [MANUAL.md](MANUAL.md). Funcionamento interno: [ARQUITETURA.md
 Confira a ISO antes de gravar:
 
 ```bash
-cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso
-sha256sum -c MilizOS-2.0-x86_64.iso.sha256
+curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
+  && cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso \
+  && sha256sum -c MilizOS-2.0-x86_64.iso.sha256 && rm MilizOS-2.0-x86_64.iso.part-*
 sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
