@@ -1,6 +1,6 @@
 Name:           milizos-installer
-Version:        1.0
-Release:        5
+Version:        2.0
+Release:        1
 Summary:        Instalador do MilizOS
 License:        GPL-3.0-or-later
 Obsoletes:      networkos-installer < 2

@@ -1,6 +1,6 @@
 Name:           milizos-branding
-Version:        1.0
-Release:        6
+Version:        2.0
+Release:        1
 Summary:        Identidade visual do MilizOS
 License:        CC-BY-SA-4.0
 Obsoletes:      networkos-branding < 2
@@ -12,7 +12,7 @@ Requires:       jetbrains-mono-fonts-all
 Requires:       rsms-inter-fonts
 
 %description
-Logotipo, papeis de parede, tema do GRUB, tela de boot (Plymouth) e padroes
+Logotipo, papeis de parede, tema do GRUB, tela de boot animada (Plymouth) e padroes
 de area de trabalho do MilizOS.
 
 %install

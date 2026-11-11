@@ -1,0 +1,6 @@
+[Unit]
+Description=Pandora - leva ao menu os aplicativos instalados nas caixas
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/lib/milizos/pandora/engine.py watch
+Nice=10

@@ -7,8 +7,9 @@ enable gdm.service
 enable fstrim.timer
 enable milizos-live.service
 enable milizos-autoinstall.service
-enable milizos-checkpoint-finalize.service
-enable milizos-data-snapshot.timer
+enable heloisa-boot.service
+enable heloisa-timeline.timer
+enable milizos-update.timer
 disable sshd.service
 disable sshd.socket
 disable suricata.service

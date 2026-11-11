@@ -28,7 +28,7 @@ chown $U:$U $H/.local/share/applications/milizos-installer.desktop $H/.config/au
 
 cat > /etc/dconf/db/distro.d/50-live <<CONF
 [org/gnome/shell]
-favorite-apps=['milizos-installer.desktop', 'org.mozilla.firefox.desktop', 'org.gnome.Ptyxis.desktop', 'milizos-nos.desktop', 'org.wireshark.Wireshark.desktop', 'org.gnome.Nautilus.desktop']
+favorite-apps=['milizos-installer.desktop', 'org.mozilla.firefox.desktop', 'org.gnome.Ptyxis.desktop', 'org.milizos.Heloisa.desktop', 'org.milizos.Pandora.desktop', 'org.wireshark.Wireshark.desktop', 'org.gnome.Nautilus.desktop']
 welcome-dialog-last-shown-version='9999'
 
 [org/gnome/desktop/screensaver]

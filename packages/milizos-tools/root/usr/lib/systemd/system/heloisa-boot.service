@@ -1,0 +1,12 @@
+[Unit]
+Description=Heloisa - conclui voltas no tempo e registra o ponto de inicializacao
+ConditionPathExists=!/run/initramfs/live
+After=local-fs.target
+RequiresMountsFor=/boot
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/milizos/heloisa-engine finalize
+
+[Install]
+WantedBy=multi-user.target

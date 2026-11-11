@@ -5,5 +5,3 @@ logo='/usr/share/milizos/wordmark.png'
 color-scheme='prefer-dark'
 accent-color='teal'
 
-[org/gnome/shell]
-enabled-extensions=['milizos-fx@milizos.org']

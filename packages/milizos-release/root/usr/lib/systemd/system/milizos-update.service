@@ -1,0 +1,13 @@
+[Unit]
+Description=MilizOS - atualizacao automatica dos pacotes do sistema MilizOS
+Documentation=https://github.com/Daniel-Pereira-Linux/milizos
+ConditionPathExists=!/run/initramfs/live
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+# So o repositorio do MilizOS. A Heloisa cria um ponto antes da transacao: toda atualizacao tem volta.
+ExecStart=/usr/bin/dnf -y upgrade --refresh --repo=milizos
+Nice=10
+IOSchedulingClass=idle

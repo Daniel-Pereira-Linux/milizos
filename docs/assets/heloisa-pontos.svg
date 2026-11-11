@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 446" width="960" height="446" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7C8AA8"/></marker>
+<marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#00F0C8"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2D7FF9"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#F0616D"/></marker>
+</defs>
+<rect width="960" height="446" rx="18" fill="#070B16"/>
+<text x="32" y="44" fill="#E8EEFA" font-size="21" font-weight="700">Heloisa: como um ponto funciona</text>
+<text x="32" y="68" fill="#7C8AA8" font-size="13.5">Snapshots btrfs comuns. A interface é só uma forma confortável de usá-los.</text>
+<rect x="32" y="92" width="430" height="330" rx="14" fill="none" stroke="#1F2C4D" stroke-dasharray="6 5"/><text x="46" y="114" fill="#7C8AA8" font-size="11.5" font-weight="700" letter-spacing="1.2">VOLUME BTRFS: UM DISCO, VÁRIOS SUBVOLUMES</text>
+<rect x="56" y="128" width="118" height="54" rx="10" fill="#101C3D" stroke="#2D7FF9" stroke-width="1.5"/><text x="115.0" y="152.0" fill="#E8EEFA" font-size="15" font-weight="600" text-anchor="middle">root</text><text x="115.0" y="170.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">/  /etc  /usr  /var</text>
+<rect x="186" y="128" width="118" height="54" rx="10" fill="#101C3D" stroke="#2D7FF9" stroke-width="1.5"/><text x="245.0" y="152.0" fill="#E8EEFA" font-size="15" font-weight="600" text-anchor="middle">home</text><text x="245.0" y="170.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">/home</text>
+<rect x="316" y="128" width="118" height="54" rx="10" fill="#101C3D" stroke="#2D7FF9" stroke-width="1.5"/><text x="375.0" y="152.0" fill="#E8EEFA" font-size="15" font-weight="600" text-anchor="middle">log</text><text x="375.0" y="170.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">/var/log</text>
+<text x="56" y="214" fill="#00F0C8" font-size="12.5" font-weight="600">snapshots/   (visível em /.heloisa, somente leitura)</text>
+<rect x="56" y="228" width="378" height="48" rx="10" fill="#0B2A33" stroke="#00F0C8" stroke-width="1.5"/><text x="245.0" y="249.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">#1   root · home · log</text><text x="245.0" y="267.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">instalação limpa</text>
+<rect x="56" y="288" width="378" height="48" rx="10" fill="#0B2A33" stroke="#00F0C8" stroke-width="1.5"/><text x="245.0" y="309.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">#6   root · home · log</text><text x="245.0" y="327.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">antes de: dnf install zeek</text>
+<rect x="56" y="348" width="378" height="48" rx="10" fill="#0B2A33" stroke="#00F0C8" stroke-width="1.5"/><text x="245.0" y="369.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">#7   root · home · log</text><text x="245.0" y="387.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">automático, 14:00</text>
+<rect x="492" y="92" width="436" height="150" rx="14" fill="none" stroke="#1F2C4D" stroke-dasharray="6 5"/><text x="506" y="114" fill="#7C8AA8" font-size="11.5" font-weight="700" letter-spacing="1.2">CRIAR UM PONTO: MENOS DE 1 SEGUNDO</text>
+<rect x="512" y="128" width="120" height="50" rx="10" fill="#0D1428" stroke="#1F2C4D" stroke-width="1.5"/><text x="572.0" y="150.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">gatilho</text><text x="572.0" y="168.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">hora · boot · dnf</text>
+<rect x="654" y="128" width="120" height="50" rx="10" fill="#0B2A33" stroke="#00F0C8" stroke-width="1.5"/><text x="714.0" y="150.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">snapshot -r</text><text x="714.0" y="168.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">dos 3 subvolumes</text>
+<rect x="796" y="128" width="116" height="50" rx="10" fill="#0D1428" stroke="#1F2C4D" stroke-width="1.5"/><text x="854.0" y="150.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">kernel</text><text x="854.0" y="168.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">hardlink em /boot</text>
+<path d="M632 153L652 153" stroke="#7C8AA8" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M774 153L794 153" stroke="#7C8AA8" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="512" y="212" fill="#7C8AA8" font-size="12" font-weight="400">O ponto nasce ocupando quase nada: só cresce com o que mudar depois.</text>
+<rect x="492" y="260" width="436" height="162" rx="14" fill="none" stroke="#1F2C4D" stroke-dasharray="6 5"/><text x="506" y="282" fill="#7C8AA8" font-size="11.5" font-weight="700" letter-spacing="1.2">VOLTAR: NUNCA APAGA HISTÓRIA</text>
+<rect x="512" y="296" width="120" height="50" rx="10" fill="#2A1218" stroke="#F0616D" stroke-width="1.5"/><text x="572.0" y="318.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">estado atual</text><text x="572.0" y="336.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">vira ponto novo</text>
+<rect x="654" y="296" width="120" height="50" rx="10" fill="#0B2A33" stroke="#00F0C8" stroke-width="1.5"/><text x="714.0" y="318.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">troca</text><text x="714.0" y="336.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">root ← ponto #6</text>
+<rect x="796" y="296" width="116" height="50" rx="10" fill="#0D1428" stroke="#1F2C4D" stroke-width="1.5"/><text x="854.0" y="318.0" fill="#E8EEFA" font-size="13.5" font-weight="600" text-anchor="middle">reinicia</text><text x="854.0" y="336.0" fill="#7C8AA8" font-size="11.5" text-anchor="middle">já no passado</text>
+<path d="M632 321L652 321" stroke="#7C8AA8" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M774 321L794 321" stroke="#7C8AA8" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="512" y="376" fill="#7C8AA8" font-size="12" font-weight="400">Arquivo ou pasta: cópia direta do ponto, sem reiniciar.</text>
+<text x="512" y="396" fill="#7C8AA8" font-size="12" font-weight="400">Arrependeu? Volte para o ponto criado no primeiro passo.</text>
+</svg>

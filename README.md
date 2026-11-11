@@ -5,7 +5,8 @@
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Baixar a ISO</a> ·
 <a href="https://daniel-pereira-linux.github.io/milizos/">Site</a> ·
 <a href="docs/MANUAL.md">Manual</a> ·
-<a href="docs/BUILD.md">Como construir</a> ·
+<a href="docs/ARQUITETURA.md">Por baixo do capô</a> ·
+<a href="docs/ADMINISTRADOR.md">Administrador</a> ·
 <a href="CONTRIBUTING.md">Como colaborar</a>
 </p>
 
@@ -15,88 +16,69 @@ O Kali é feito para quem ataca. O **MilizOS** é feito para quem defende: uma d
 baseada em Fedora, com instalador próprio, pensada para o analista de SOC, o time de
 resposta a incidentes e o engenheiro de redes.
 
-Além de reunir as ferramentas, ele traz recursos que são do próprio sistema: voltar no
-tempo sem abrir mão do acesso de escrita, isolar a máquina e preservar evidências com um
-comando, e medir o que o seu sensor de fato detecta.
+A ideia central da versão 2.0: **um sistema totalmente gravável em que tudo tem história**.
+Você pode mexer em qualquer coisa, e qualquer coisa volta a uma versão anterior, como em um
+repositório git. Sem comandos próprios para decorar: as ferramentas são as originais.
 
 | | |
 |---|---|
 | Base | Fedora 44 (x86-64), GNOME, SELinux em *Enforcing* |
-| ISO | 2,8 GB, híbrida: BIOS e UEFI, com Secure Boot |
-| Pacotes | 2.312 na imagem, 362 ferramentas catalogadas em 11 categorias |
+| ISO | 3,2 GB, híbrida: BIOS e UEFI, com Secure Boot |
+| Memória | roda em **4 GB de RAM** (swap comprimido em zram) |
 | Instalador | próprio, gráfico e desassistido; btrfs, xfs ou ext4; LUKS2 opcional |
 | Perfis | SOC, Engenharia de Redes, Sensor (IDS sem interface gráfica) |
 
-## O que só o MilizOS faz
+## Heloisa: a máquina do tempo
 
-Tudo passa pelo comando `nos`.
+Um aplicativo gráfico que volta **qualquer coisa** a uma versão anterior.
 
-### Rollback do sistema, com acesso total
+![Heloisa: linha do tempo](docs/assets/heloisa-linha-do-tempo.png)
 
-Um checkpoint é criado antes de cada `dnf`. Se algo quebrar, volte pelo terminal ou pelo
-menu de boot. Diferente de uma distribuição imutável, o sistema continua gravável.
+- **A máquina inteira.** Cada *ponto* congela o sistema (`/`, `/etc`, `/usr`, `/var`), os
+  arquivos pessoais (`/home`) e os logs. Pontos nascem sozinhos de hora em hora, na
+  primeira inicialização do dia e antes de cada transação do `dnf`.
+- **Qualquer arquivo ou pasta.** Navegue por todo o sistema, veja todas as versões que um
+  caminho já teve, compare com um diff colorido e traga de volta: no lugar ou como cópia.
+  Inclusive o que foi apagado.
+- **Voltar nunca apaga.** Antes de qualquer volta, o estado atual vira um ponto. Dá para
+  desfazer o desfazer.
+- **Pelo menu de boot.** O GRUB lista os 15 pontos mais recentes, cada um com o seu kernel.
+- **Resgate pela mídia.** Se nem o GRUB sobrou, a Heloisa no pendrive restaura um ponto e
+  reconstrói o boot.
 
-```console
-$ sudo nos checkpoint list
-▍Checkpoints do sistema   (⏻ = disponível no menu de boot)
-  ⏻ #1   2026-11-10 14:02  instalação   instalação limpa
-  ⏻ #2   2026-11-10 15:40  automático   antes de: dnf install zeek
-$ sudo nos checkpoint rollback 1
-```
+Nada é formato próprio: os pontos são snapshots btrfs, montados somente leitura em
+`/.heloisa`, legíveis com `ls`, `diff` e `cp`.
 
-Se até o `/boot` for destruído, `nos checkpoint rescue`, rodando pela ISO, restaura o
-sistema e reinstala o boot.
+## Pandora: caixas Linux descartáveis
 
-### Linha do tempo dos dados
+Debian, Kali, AlmaLinux, Ubuntu, Fedora, Arch, Rocky, openSUSE, Alpine ou Parrot rodando
+dentro do MilizOS, em conteiners sem root.
 
-Snapshots somente-leitura de `/home` de hora em hora. Um arquivo apagado, ou criptografado
-por ransomware, volta com um comando:
+- **Atalho automático.** Instalou um programa na caixa (pelo app ou com o `apt`/`dnf`/`pacman`
+  dela) e ele aparece no menu do GNOME, rodando dentro da caixa.
+- **Dois modos de rede.** *Isolada*: só sai para a internet; rede local, host e endereços
+  privados são recusados, e a pasta pessoal é separada. *Ponte*: usa a rede do host, para
+  ferramentas que precisam enxergar a rede.
+- **Destruiu, sumiu.** Apagar a caixa leva os programas, os atalhos e a pasta dela. O
+  sistema base não é tocado.
 
-```console
-$ sudo nos data restore ~/relatorios --at ontem --in-place
-```
+As caixas são podman comum: `podman ps` e `distrobox enter` funcionam.
 
-### Modo incidente
+![Pandora com uma caixa isolada](docs/assets/pandora-caixas.png)
 
-```console
-$ sudo nos incident start
-▍MODO INCIDENTE  INC-20261110-153012
-  15:30:12  captura de tráfego iniciada (anel 20 × 50 MB, todas as interfaces)
-  15:30:13  coletado 02-processos  sha256=…
-  15:30:19  HOST ISOLADO da rede
-  15:30:21  checkpoint #3 do sistema criado (estado em disco preservado)
-  15:30:40  manifesto de integridade gravado
-```
+## Atualiza sozinho
 
-Captura, coleta na ordem de volatilidade, contenção por nftables, checkpoint, triagem e um
-pacote de evidências com linha do tempo e SHA-256.
+Um serviço diário busca no repositório do projeto as correções da Heloisa, da Pandora e do
+instalador. A Heloisa cria um ponto antes: toda atualização tem volta.
 
-### Treino de detecção
+## Por baixo do capô
 
-Gera tráfego de ataque sintético e passa pelo Suricata com as suas regras, offline. O
-relatório mostra, por técnica MITRE ATT&CK, o que o sensor viu e o que deixou passar.
+![Arquitetura](docs/assets/arquitetura.svg)
 
-```console
-$ sudo nos drill run
-  ✔ DETECTADO  T1046      Varredura de portas TCP (SYN)
-  ✔ DETECTADO  T1190      Injeção de SQL automatizada contra aplicação web
-  ✘ PASSOU     T1071.004  Túnel/exfiltração por consultas DNS
-  Cobertura: 7/8 técnicas (87%)
-```
+Disco, boot, snapshots, rede das caixas e atualização, explicados em
+[docs/ARQUITETURA.md](docs/ARQUITETURA.md).
 
-### E mais
-
-| Comando | O que faz |
-|---|---|
-| `nos attest` | Atesta que o sistema ainda é o que foi instalado: confere todos os arquivos de pacotes, executáveis sem dono, Secure Boot e SELinux |
-| `nos forge` | Gera uma ISO que instala sozinha com a sua configuração (sensor pronto ao ligar) |
-| `nos box kali` | Kali, Debian, Arch, Ubuntu ou Parrot integrados ao sistema, sem tocar na base |
-| `nos sensor` | Configura e atualiza o sensor IDS (Suricata) |
-| `nos status` | Postura de segurança da máquina |
-| `nos capture` / `nos triage` | Captura em anel e coleta de triagem do host |
-| `nos tools` | Catálogo de ferramentas, com busca |
-
-O [manual](docs/MANUAL.md) descreve cada um em detalhe, incluindo os limites.
+O [manual](docs/MANUAL.md) descreve os dois em detalhe, incluindo os limites.
 
 ## Ferramentas
 
@@ -112,52 +94,37 @@ O [manual](docs/MANUAL.md) descreve cada um em detalhe, incluindo os limites.
 | Redes sem fio e rádio | aircrack-ng, Kismet, hcxtools, GNU Radio, rtl-sdr, HackRF |
 | Auditoria e hardening | OpenSCAP, Lynis, AIDE, trivy, rkhunter, testssl |
 
-A lista completa sai de `nos tools --all`. Só entra na ISO o que existe nos repositórios
-do Fedora; o que falta (Metasploit e Burp Suite, por exemplo) roda por `nos box kali`.
+Só entra na ISO o que existe nos repositórios do Fedora; o que falta (Metasploit e Burp
+Suite, por exemplo) roda em uma caixa Kali da Pandora.
 
 ## Baixar e instalar
 
 1. Baixe a ISO em [Releases](https://github.com/Daniel-Pereira-Linux/milizos/releases/latest).
    A ISO passa do limite de 2 GB por arquivo do GitHub, entao vai em duas partes. Junte e confira:
    ```bash
-   cat MilizOS-1.0-x86_64.iso.part-* > MilizOS-1.0-x86_64.iso
-   sha256sum -c MilizOS-1.0-x86_64.iso.sha256
+   cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso
+   sha256sum -c MilizOS-2.0-x86_64.iso.sha256
    ```
 2. Grave em um pendrive:
    ```bash
-   sudo dd if=MilizOS-1.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+   sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
    ```
 3. Inicie pelo pendrive. O instalador abre sozinho no modo live.
 
-Requisitos: x86-64, 4 GB de RAM (8 GB recomendado), 30 GB de disco.
-Para checkpoints e linha do tempo, mantenha o btrfs sugerido pelo instalador.
-
-## Construir a partir do código
-
-Tudo roda em podman sem root:
-
-```bash
-git clone https://github.com/Daniel-Pereira-Linux/milizos
-cd milizos
-./build.sh all        # → out/MilizOS-1.0-x86_64.iso
-tests/vm.py start live && tests/vm.py shot tela.png
-```
-
-Detalhes, estágios e armadilhas em [docs/BUILD.md](docs/BUILD.md).
+Requisitos: x86-64, 4 GB de RAM, 30 GB de disco.
+Para a Heloisa funcionar, mantenha o btrfs sugerido pelo instalador.
 
 ## Colaborar
 
-Adicionar uma ferramenta é editar uma linha; criar um subcomando do `nos` é um arquivo
-Python; um novo cenário de ataque para o treino de detecção é uma função.
+Adicionar uma ferramenta é editar uma linha; a Heloisa e a Pandora são Python com GTK4.
 O [guia de contribuição](CONTRIBUTING.md) tem a receita de cada um.
 
 ## O que foi testado
 
-Testado em QEMU/KVM nesta versao: boot UEFI da ISO, animacao 3D do boot, desktop live com
-fundo animado, instalador, `nos about`, `nos tools` e `nos drill` (7 de 8 cenarios).
-Varios recursos estao escritos mas ainda nao foram testados, e ha problemas conhecidos
-(o fundo animado pesa em VM sem aceleracao 3D). A lista honesta esta em
-[docs/PROBLEMAS-CONHECIDOS.md](docs/PROBLEMAS-CONHECIDOS.md). Nao foi testado em hardware real.
+Testado em QEMU/KVM com 4 GB de RAM: boot live, instalação em btrfs, a Heloisa de ponta a
+ponta (pontos, voltar arquivo, pasta e sistema, volta pelo GRUB) e uma caixa isolada da
+Pandora com atalho automático. A lista completa, com o que **ainda não** foi testado, está
+em [docs/PROBLEMAS-CONHECIDOS.md](docs/PROBLEMAS-CONHECIDOS.md). Não foi testado em hardware real.
 
 ## Licença e avisos
 
@@ -167,6 +134,11 @@ incluídos na ISO mantêm as próprias licenças.
 O MilizOS é baseado no Fedora Linux, mas é um projeto independente, sem vínculo com o
 Projeto Fedora ou a Red Hat. Use as ferramentas de segurança apenas em sistemas e redes
 que você tem autorização para testar.
+
+## Apoie o projeto
+
+O MilizOS é feito por uma pessoa só, no tempo livre. Se ele te ajudou, pague um café:
+**Pix, chave e-mail `danielmaraboo@gmail.com`**.
 
 ## Autor
 

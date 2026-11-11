@@ -1,0 +1,9 @@
+# Repositorio oficial do MilizOS (pacotes proprios: Heloisa, Pandora, instalador, identidade).
+# Servido pelo GitHub Pages do projeto. O restante do sistema vem dos repositorios do Fedora.
+[milizos]
+name=MilizOS
+baseurl=https://daniel-pereira-linux.github.io/milizos/repo/
+enabled=1
+gpgcheck=0
+metadata_expire=6h
+skip_if_unavailable=True

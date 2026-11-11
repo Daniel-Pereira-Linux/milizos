@@ -1,20 +1,15 @@
-# Manual do MilizOS
+# Manual do MilizOS 2.0
 
-Tudo o que a distribuição faz, e como usar. O ponto de entrada é o comando **`nos`**
-(também disponível como `miliz`); `nos help` mostra o resumo no terminal.
+O MilizOS não tem comando próprio para aprender. As ferramentas são as originais
+(`nmap`, `suricata`, `tcpdump`, `btrfs`, `podman`, `dnf`…), cada uma com o seu nome e o seu
+manual. O que o sistema acrescenta são dois aplicativos gráficos:
 
-- [Instalação](#instalação)
-- [Perfis](#perfis)
-- [Ferramentas](#ferramentas)
-- [Checkpoints e rollback do sistema](#checkpoints-e-rollback-do-sistema)
-- [Linha do tempo dos dados](#linha-do-tempo-dos-dados)
-- [Modo incidente](#modo-incidente)
-- [Treino de detecção](#treino-de-detecção)
-- [Atestação de integridade](#atestação-de-integridade)
-- [Sensor IDS](#sensor-ids)
-- [Forja de imagens](#forja-de-imagens)
-- [Caixas de outras distribuições](#caixas-de-outras-distribuições)
-- [Utilitários do dia a dia](#utilitários-do-dia-a-dia)
+- **Heloisa**, a máquina do tempo: volta qualquer coisa a uma versão anterior.
+- **Pandora**, as caixas Linux: Debian, Kali, Alma e outros, descartáveis, com atalhos no menu.
+
+Índice: [Instalação](#instalação) · [Perfis](#perfis) · [Heloisa](#heloisa) ·
+[Pandora](#pandora) · [Ferramentas](#ferramentas) · [Sensor IDS](#sensor-ids) ·
+[Memória](#memória)
 
 ## Instalação
 
@@ -23,17 +18,17 @@ Tudo o que a distribuição faz, e como usar. O ponto de entrada é o comando **
    modo texto e instalação desassistida.
 3. No modo live o instalador abre sozinho. Escolha idioma, disco, usuário e perfil.
 
-O instalador cria uma tabela GPT que inicia tanto em BIOS quanto em UEFI (com Secure
-Boot), e oferece:
+Requisitos: x86-64, **4 GB de RAM**, 30 GB de disco.
+
+O instalador cria uma tabela GPT que inicia em BIOS e em UEFI (com Secure Boot), e oferece:
 
 | Opção | Escolhas |
 |---|---|
-| Sistema de arquivos | **btrfs** (padrão; habilita checkpoints e linha do tempo), xfs, ext4 |
+| Sistema de arquivos | **btrfs** (padrão; é o que dá a linha do tempo), xfs, ext4 |
 | Criptografia | LUKS2 no disco inteiro, opcional |
 | Perfil | SOC, Redes ou Sensor |
 
-> Checkpoints, rollback e linha do tempo **exigem btrfs**. Em xfs ou ext4 o sistema
-> funciona normalmente, sem esses recursos.
+> A Heloisa **exige btrfs**. Em xfs ou ext4 o sistema funciona, mas sem voltar no tempo.
 
 ### Instalação desassistida
 
@@ -48,217 +43,165 @@ desassistida" no menu de boot:
 ```
 
 - `"disk": "auto"` usa o maior disco interno; ou informe um caminho como `/dev/nvme0n1`.
-- Em `user`, use `password_hash` (gere com `openssl passwd -6`) em vez de `password`
-  para não deixar a senha em claro na mídia.
-- O jeito mais simples de produzir essa mídia é o [`nos forge`](#forja-de-imagens).
+- Em `user`, prefira `password_hash` (gere com `openssl passwd -6`) a `password`.
 
 ## Perfis
 
-O perfil define quais serviços sobem. Dá para trocar depois com `sudo nos profile NOME`.
+O perfil define quais serviços sobem. Para trocar depois, use o `systemctl` normalmente.
 
 | Perfil | Para quem | O que liga |
 |---|---|---|
-| `soc` | analista de SOC / Blue Team | desktop completo, firewall e auditoria; SSH desligado |
-| `neteng` | engenharia de redes | desktop, firewall, SSH e descoberta de vizinhos (LLDP) |
-| `sensor` | appliance IDS | sem interface gráfica; Suricata, SSH, auditoria e painel web Cockpit (porta 9090) |
+| `soc` | Analista de SOC | Desktop, firewall, auditd |
+| `neteng` | Engenharia de redes | Desktop, firewall, SSH, LLDP |
+| `sensor` | Sensor de rede sem tela | Suricata, SSH, Cockpit (porta 9090) |
 
-## Ferramentas
+## Heloisa
 
-```bash
-nos tools              # categorias e quantidade de ferramentas
-nos tools dfir         # lista uma categoria (● instalada, ○ ausente)
-nos tools dns          # busca por nome ou descrição
-nos tools --all        # tudo
-```
+O sistema é totalmente gravável: `dnf`, `/etc`, `/usr`, tudo pode ser alterado. A segurança
+vem de outro lugar: **tudo tem história**, como em um repositório git.
 
-As mesmas categorias aparecem como pastas no menu de aplicativos.
+### Pontos
 
-## Checkpoints e rollback do sistema
+Um **ponto** é a máquina inteira congelada em um instante: o sistema (`/`, com `/etc`,
+`/usr` e `/var`), os arquivos pessoais (`/home`) e os logs (`/var/log`), mais o kernel e o
+initramfs daquele momento. São snapshots btrfs: criar um leva menos de um segundo e só
+ocupa espaço conforme os arquivos mudam.
 
-Um checkpoint é uma fotografia somente-leitura do sistema (`/usr`, `/etc`, pacotes),
-com o kernel correspondente guardado em `/boot`. Diferente de uma distribuição imutável,
-o sistema continua com acesso total de escrita.
+Pontos nascem sozinhos:
 
-```bash
-sudo nos checkpoint list
-sudo nos checkpoint create "antes de mexer no firewall"
-sudo nos checkpoint diff 7              # pacotes e arquivos de /etc que mudaram desde o #7
-sudo nos checkpoint diff 7 /etc/ssh/sshd_config
-sudo nos checkpoint rollback 7          # vale no próximo boot
-sudo nos checkpoint delete 3
-```
+| Quando | Tipo | Quantos ficam |
+|---|---|---|
+| Fim da instalação | instalação | para sempre |
+| Antes de cada transação do `dnf` | pacotes | os 12 mais recentes |
+| De hora em hora | automático | todos por 24 h, depois um por dia por 14 dias |
+| Primeira inicialização do dia | inicialização | os 5 mais recentes |
+| Antes de qualquer volta ou restauração | antes de voltar | os 12 mais recentes |
+| Botão **Criar ponto agora** | manual | para sempre |
 
-- **Automático**: toda transação do `dnf` cria um checkpoint antes de alterar o sistema.
-  Ficam os 10 automáticos mais recentes; os manuais não expiram.
-- **Pelo menu de boot**: se o sistema não sobe, escolha *MilizOS: checkpoints* no GRUB.
-  O rollback é feito no initramfs, antes de montar a raiz.
-- **O estado atual nunca é perdido**: antes de reverter, ele vira um checkpoint.
-- **`/home` e `/var/log` não voltam no tempo** no rollback do sistema.
+### Voltar a máquina
+
+Na aba **Linha do tempo**, **Voltar para cá** deixa escolher o que volta: sistema,
+arquivos pessoais, logs, ou qualquer combinação. O estado atual vira um ponto antes, então
+a volta pode ser desfeita voltando para esse ponto. A troca vale ao reiniciar.
+
+O menu de cada ponto também mostra **o que mudou desde então** (pacotes que entraram,
+saíram ou mudaram de versão, e arquivos de `/etc`) e permite **explorar os arquivos** como
+eram.
+
+### Voltar qualquer coisa
+
+A aba **Qualquer coisa** navega por todo o sistema de arquivos. Selecione um arquivo ou
+pasta (ou digite o caminho) e a Heloisa lista todas as versões que ele teve:
+
+- 🔍 compara a versão com o estado de agora (diff colorido para texto);
+- 📄 traz uma **cópia** ao lado do original (`arquivo.ponto-12`), sem mexer no atual;
+- **Voltar** deixa o caminho *exatamente* como era — numa pasta, o que foi criado depois
+  some e o que foi apagado reaparece. Antes disso o estado atual vira um ponto.
+
+O seletor **Ver:** mostra as pastas como eram em um ponto, e é assim que se acha o que foi
+apagado. Também dá para abrir direto de um caminho: `heloisa /etc/ssh/sshd_config`.
+
+### Pelo menu de boot
+
+O GRUB tem o submenu **Heloisa: voltar o sistema no tempo** com os 15 pontos mais
+recentes. Escolher um inicia o sistema daquele ponto, com o kernel daquele ponto; o
+sistema que estava quebrado é preservado como um novo ponto.
 
 ### Resgate pela mídia
 
-Se o `/boot` ou o GRUB foram destruídos, o menu de checkpoints deixa de existir, mas os
-snapshots continuam no disco. Inicie pela ISO do MilizOS e rode:
+Se nem o GRUB sobrou, inicie pelo pendrive e abra a Heloisa. Em modo live ela procura
+instalações nos discos, restaura o ponto escolhido e reconstrói `/boot` e o GRUB. Para um
+disco criptografado, desbloqueie-o antes no app Arquivos ou Discos.
+
+### Sem a Heloisa
+
+Nada é formato próprio. Os pontos ficam montados, somente leitura, em **`/.heloisa`**:
 
 ```bash
-sudo nos checkpoint rescue        # lista os checkpoints do disco e pergunta qual restaurar
+ls /.heloisa/                                   # um diretório por ponto
+cat /.heloisa/12/info.json                      # quando e por quê
+diff -u /.heloisa/12/root/etc/fstab /etc/fstab
+sudo cp -a /.heloisa/12/home/ana/relatorio.odt ~/
+sudo btrfs subvolume list /
 ```
-
-O resgate restaura o sistema, reconstrói kernels e initramfs em `/boot` e reinstala o GRUB.
 
 ### Limites
 
-Checkpoints protegem contra erro, atualização ruim e alteração indevida do sistema. Não
-substituem backup: falha do disco, ou alguém com root apagando os snapshots, não tem volta.
+- A única ação sem volta é **excluir um ponto**.
+- `/boot` (ext4) e a partição EFI não são fotografados; o kernel e o initramfs de cada
+  ponto são guardados, e o resgate reconstrói o resto.
+- Entre dois pontos automáticos pode passar até uma hora. Antes de algo arriscado, crie um
+  ponto manual.
+- Os pontos vivem no mesmo disco: protegem contra erro, atualização ruim e ransomware
+  comum, não contra a morte do disco. Backup externo continua necessário.
 
-## Linha do tempo dos dados
+## Pandora
 
-Snapshots somente-leitura de `/home`, tirados sozinhos de hora em hora. Ficam os das
-últimas 24 horas e um por dia durante 14 dias.
+Uma **caixa** é outra distribuição Linux inteira rodando em um conteiner sem root
+(podman + distrobox). Serve para usar uma ferramenta que só existe no Kali, testar um
+pacote do Debian ou compilar algo no Alma sem sujar o MilizOS.
 
-```bash
-sudo nos data list
-sudo nos data snap                                   # snapshot agora
-sudo nos data restore ~/relatorio.odt --at ontem     # cria relatorio.odt.restaurado-<id>
-sudo nos data restore ~/projeto --at 3h --in-place   # sobrescreve com a versão de 3 h atrás
-sudo nos data restore ~ --at 2026-11-09 --in-place   # o home inteiro
-```
+Distribuições prontas: Debian 13, Kali, AlmaLinux 9, Ubuntu 24.04, Fedora 44, Arch,
+Rocky 9, openSUSE Tumbleweed, Alpine e Parrot. A imagem é baixada na criação.
 
-`--at` aceita `ontem`, `3h`, `2d`, `AAAA-MM-DD`, `"AAAA-MM-DD HH:MM"` ou o id do snapshot.
-Sem `--at`, usa o mais recente.
+### Atalhos automáticos
 
-Isso recupera arquivos apagados ou criptografados por ransomware que rodou como usuário
-comum, porque os snapshots são somente-leitura e ficam fora de `/home`. Um atacante com
-root pode apagá-los: mantenha também um backup fora da máquina.
+Instalou um programa dentro da caixa — pelo botão **Instalar…** ou no terminal dela, com
+`apt`, `dnf`, `pacman`, `zypper` ou `apk` — e ele aparece no menu do GNOME em alguns
+segundos, com o nome da caixa entre parênteses. Ele continua rodando **dentro da caixa**.
+Desinstalou, o atalho some.
 
-## Modo incidente
+### Modos de rede
 
-Para o momento em que você suspeita que a máquina foi comprometida. Um comando, na ordem
-de volatilidade:
-
-```bash
-sudo nos incident start                    # isola a máquina
-sudo nos incident start --allow 10.0.0.5   # isola, mas mantém acesso ao IP do analista
-sudo nos incident start --no-isolate       # só coleta
-sudo nos incident status
-sudo nos incident release                  # encerra, remove o isolamento e empacota
-```
-
-O que acontece no `start`:
-
-1. **Captura de tráfego** em anel (20 × 50 MB) em todas as interfaces.
-2. **Estado volátil**: processos, conexões, rotas, vizinhos, usuários, módulos, executáveis
-   apagados em execução, firewall, timers, journal e auditoria — cada item com SHA-256.
-3. **Contenção**: regras nftables bloqueiam toda entrada e saída, exceto os IPs de
-   `--allow`. Se você estiver conectado por SSH, seu IP é liberado automaticamente.
-4. **Checkpoint** do sistema, preservando o estado em disco.
-5. **Triagem** do host e **manifesto** de integridade.
-
-O `release` gera `/var/lib/milizos/incidents/INC-<data>.tar.gz` com `timeline.log`
-(quem fez o quê e quando), `caso.json`, `MANIFEST.sha256` e o SHA-256 do pacote.
-
-A memória RAM não é adquirida por padrão: o kernel em *lockdown* bloqueia o acesso e a
-ISO não traz módulo de aquisição. Se o `avml` estiver instalado, ele é usado.
-
-## Treino de detecção
-
-Mede o que o seu sensor de fato detecta. O `nos drill` gera tráfego de ataque sintético
-em pcap e passa pelo Suricata **offline**; nenhum pacote vai para a rede.
-
-```bash
-nos drill list                         # cenários e técnicas MITRE ATT&CK
-sudo nos drill run                     # todos, com as regras em uso no sensor
-sudo nos drill run sqlmap dnstunnel    # só alguns
-sudo nos drill run --baseline          # com as regras de referência do MilizOS
-sudo nos drill run --export ~/pcaps    # salva os pcaps para usar com tcpreplay
-```
-
-| Cenário | Técnica | O que simula |
+| Modo | O que a caixa alcança | Pasta pessoal |
 |---|---|---|
-| `portscan` | T1046 | varredura de portas TCP (SYN) |
-| `sqlmap` | T1190 | injeção de SQL automatizada |
-| `traversal` | T1083 | leitura de `/etc/passwd` por path traversal |
-| `shell` | T1059 | shell reversa devolvendo `uid=0(root)` |
-| `dnstunnel` | T1071.004 | túnel por consultas DNS |
-| `sshbrute` | T1110 | força bruta de SSH |
-| `eicar` | T1105 | download de arquivo malicioso de teste |
-| `icmptunnel` | T1095 | túnel por ICMP |
+| **Isolada** | Só a internet. Rede local, o host e endereços privados são recusados; nada entra | Própria, separada da sua |
+| **Ponte** | A rede do host inteira: rede local, interfaces, portas, como um programa do host | A sua, compartilhada |
 
-O resultado mostra cada técnica como DETECTADO ou PASSOU, a cobertura em porcentagem e
-as lacunas. O relatório em JSON fica em `/var/lib/milizos/drill/`. O código de saída é
-3 quando há lacunas, o que permite usar o treino em automação.
+Use **Isolada** para o que você não confia; use **Ponte** para ferramentas que precisam
+enxergar a rede (varredura, captura).
 
-## Atestação de integridade
+### Destruir
 
-Responde "este sistema ainda é o que foi instalado?".
+**Destruir** apaga a caixa, tudo o que foi instalado nela, os atalhos do menu e, no modo
+isolado, a pasta pessoal dela. O MilizOS não é tocado.
 
-```bash
-sudo nos attest seal     # grava o estado de referência (faça logo após instalar e configurar)
-sudo nos attest          # verifica
-```
+### Sem a Pandora
 
-A verificação cobre: Secure Boot, lockdown do kernel, SELinux, módulos externos, o
-conteúdo de **todos os arquivos de pacotes** contra o banco RPM, e executáveis ou units
-do systemd que não pertencem a pacote nenhum. Com o selo gravado, mostra também pacotes
-adicionados e removidos e executáveis novos. Veredito: ÍNTEGRO ou ALTERADO.
+As caixas são conteiners comuns: `podman ps -a`, `distrobox list` e
+`distrobox enter NOME` funcionam. Os atalhos chamam
+`/usr/libexec/milizos/pandora-enter NOME -- comando`, que liga a caixa e reaplica o
+isolamento de rede antes de executar.
 
-Limite: a verificação roda no próprio sistema. Um rootkit de kernel pode enganá-la; para
-esse nível de suspeita, verifique a partir da mídia live. Guarde uma cópia do selo fora
-da máquina.
+### Limites
+
+- O modo **Ponte** compartilha a pilha de rede do host; a caixa não ganha um IP próprio na
+  rede local (conteiner sem root não consegue isso).
+- No modo **Isolada**, o filtro fica dentro da rede da caixa. Ele barra programas comuns;
+  um processo que vire root *dentro da caixa* pode removê-lo. Para malware de verdade, use
+  uma máquina virtual.
+- A caixa enxerga o disco do host em `/run/host`. O isolamento é de rede e de pasta
+  pessoal, não uma sandbox de segurança completa.
+
+## Ferramentas
+
+O menu do GNOME agrupa as ferramentas por categoria (tráfego, detecção, varredura,
+diagnóstico, engenharia, forense, senhas, sem fio, hardening). As de terminal abrem um
+shell já com a dica de `man` e `--help`. A lista completa está no [README](../README.md).
 
 ## Sensor IDS
 
-```bash
-nos sensor status               # interface, estado do Suricata, regras, alertas recentes
-sudo nos sensor setup enp3s0    # define a interface de captura
-sudo nos sensor update          # atualiza as regras
-```
-
-No perfil `sensor` isso é configurado sozinho na instalação: o Suricata sobe na interface
-detectada, com um conjunto inicial de regras.
-
-## Forja de imagens
-
-Gera uma ISO que instala sozinha com a sua configuração.
+No perfil `sensor`, o serviço `milizos-sensor-setup` escolhe a interface de captura e
+prepara as regras antes de o Suricata subir. Depois disso, é o Suricata de sempre:
 
 ```bash
-nos forge --iso MilizOS-1.0-x86_64.iso                 # assistente interativo
-nos forge --iso MilizOS-1.0-x86_64.iso --config meu.json -o sensor-filial.iso
+sudo suricata-update                 # atualiza as regras
+sudo systemctl restart suricata
+sudo tail -f /var/log/suricata/fast.log
 ```
 
-A mídia resultante inicia direto na instalação automática após 8 segundos. A senha do
-usuário vai como hash, nunca em claro.
+## Memória
 
-> **A mídia forjada apaga o disco da máquina em que iniciar, sem perguntar.**
-> Identifique bem o pendrive.
-
-## Caixas de outras distribuições
-
-Para a ferramenta que só existe em outra distribuição. A caixa compartilha a sua pasta
-pessoal, a rede e a tela, sem alterar a base do MilizOS. Roda sem root.
-
-```bash
-nos box                  # lista
-nos box kali             # cria (na primeira vez) e entra
-nos box kali nmap -sV alvo
-nos box rm kali
-```
-
-Disponíveis: `kali`, `debian`, `ubuntu`, `arch`, `parrot`, `alpine`, `fedora`.
-Dentro da caixa Kali, `sudo apt install kali-linux-headless` traz o conjunto completo de
-ferramentas do Kali. É preciso internet para baixar a imagem na primeira vez.
-
-## Utilitários do dia a dia
-
-```bash
-nos status                       # postura de segurança: SELinux, firewall, Secure Boot, serviços
-nos ifaces                       # interfaces, endereços, enlace, vizinhos
-sudo nos capture enp3s0 port 53  # captura em anel (pcap rotativo) com filtro BPF
-sudo nos triage                  # coleta de triagem do host em um .tar.gz com SHA-256
-nos about                        # sobre o MilizOS
-```
-
----
-
-MilizOS foi criado por **Daniel Pereira da Silva** ·
-https://www.linkedin.com/in/danielpereira-linux/
+O MilizOS liga um swap comprimido em RAM (zram, zstd) do tamanho da memória e ajusta o
+kernel para preferir comprimir páginas a descartar cache. É o que deixa o desktop completo
+confortável em 4 GB. `zramctl` e `swapon` mostram o estado.

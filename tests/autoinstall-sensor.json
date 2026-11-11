@@ -1,3 +1,0 @@
-{"disk": "/dev/vda", "filesystem": "xfs", "encrypt": false, "passphrase": "",
- "hostname": "sensor01", "locale": "en_US.UTF-8", "keymap": "us", "timezone": "America/Sao_Paulo",
- "profile": "sensor", "user": {"name": "soc", "fullname": "SOC", "password": "milizos", "admin": true}}

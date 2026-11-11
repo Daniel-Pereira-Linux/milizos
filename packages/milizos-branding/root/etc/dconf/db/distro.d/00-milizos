@@ -19,8 +19,8 @@ show-battery-percentage=true
 button-layout='appmenu:minimize,maximize,close'
 
 [org/gnome/shell]
-favorite-apps=['org.mozilla.firefox.desktop', 'org.gnome.Ptyxis.desktop', 'milizos-nos.desktop', 'org.wireshark.Wireshark.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Settings.desktop']
-enabled-extensions=['milizos-fx@milizos.org', 'dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']
+favorite-apps=['org.mozilla.firefox.desktop', 'org.gnome.Ptyxis.desktop', 'org.milizos.Heloisa.desktop', 'org.milizos.Pandora.desktop', 'org.wireshark.Wireshark.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Settings.desktop']
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']
 
 [org/gnome/shell/extensions/dash-to-dock]
 dock-position='BOTTOM'

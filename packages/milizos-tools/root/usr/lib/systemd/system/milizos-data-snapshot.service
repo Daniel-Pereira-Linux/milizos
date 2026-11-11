@@ -1,9 +1,0 @@
-[Unit]
-Description=MilizOS: snapshot da linha do tempo de /home
-ConditionPathExists=!/run/initramfs/live
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/nos data auto
-Nice=10
-IOSchedulingClass=idle

@@ -51,24 +51,41 @@ ol.steps{padding-left:20px;margin:0}ol.steps li{margin-bottom:12px}
 footer{padding:44px 0 60px;color:var(--mut);font-size:14.5px;border-top:1px solid var(--line)}
 footer b{color:var(--tx)}
 @media(max-width:820px){.hero{grid-template-columns:1fr;padding:54px 0 60px}.logo3d{order:-1}.two{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}nav .links a.opt{display:none}}
+.shot{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.5);display:block}
+.diag{width:100%;border-radius:14px;border:1px solid var(--line);display:block;background:#070B16}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
+.tabs button{font:inherit;font-weight:600;font-size:14.5px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:8px 18px;cursor:pointer}
+.tabs button[aria-selected=true]{color:#04121a;background:linear-gradient(100deg,var(--ac),#19c9e6);border-color:transparent}
+.pane{display:none}.pane.on{display:block}
+.pane p{color:var(--mut);max-width:78ch}
+ul.ck{list-style:none;padding:0;margin:0 0 18px}ul.ck li{padding:5px 0 5px 26px;position:relative;color:var(--mut)}ul.ck li:before{content:"";position:absolute;left:2px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--ac)}
+ul.ck b{color:var(--tx)}
+.cafe{max-width:640px;margin:0 auto;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:38px 28px}
+.cafe .cup{font-size:44px;line-height:1}
+.pix{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0 8px}
+.pix code{background:#060a14;border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:16.5px;color:var(--ac)}
+.pix button{font:inherit;font-weight:650;border:0;border-radius:10px;padding:12px 20px;cursor:pointer;color:#04121a;background:linear-gradient(100deg,var(--ac),#19c9e6)}
+.docs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.docs a{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;color:var(--tx)}
+.docs a:hover{border-color:var(--ac);text-decoration:none}.docs a span{display:block;color:var(--mut);font-size:14px;margin-top:4px}
 </style>
 </head>
 <body>
 <nav><div class="wrap"><img src="assets/logo.svg" alt=""><b>MilizOS</b>
-<div class="links"><a class="opt" href="#recursos">Recursos</a><a class="opt" href="#ferramentas">Ferramentas</a><a href="#baixar">Baixar</a><a href="https://github.com/Daniel-Pereira-Linux/milizos">GitHub</a></div></div></nav>
+<div class="links"><a class="opt" href="#heloisa">Heloisa</a><a class="opt" href="#pandora">Pandora</a><a class="opt" href="#porbaixo">Por baixo</a><a class="opt" href="#docs">Documentação</a><a href="#baixar">Baixar</a><a href="#cafe">Doe um café</a><a href="https://github.com/Daniel-Pereira-Linux/milizos">GitHub</a></div></div></nav>
 
 <header><canvas id="mesh"></canvas><div class="wrap hero">
 <div>
 <span class="tag">SOC · Blue Team · Network Engineering</span>
 <h1>A distribuição Linux<br><span>para quem defende.</span></h1>
-<p class="lead">Uma distribuição Linux baseada em Fedora, feita para times de segurança e redes: sistema que volta no tempo, modo incidente com cadeia de custódia, treino de detecção contra o próprio sensor e centenas de ferramentas prontas — em uma única ISO com instalador próprio.</p>
+<p class="lead">Uma distribuição Linux baseada em Fedora, feita para times de segurança e redes: um sistema gravável em que qualquer coisa volta a uma versão anterior, caixas descartáveis com outras distribuições e centenas de ferramentas prontas — em uma única ISO com instalador próprio.</p>
 <div class="btns"><a class="btn pri" href="#baixar">Baixar a ISO</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos">Código-fonte</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/MANUAL.md">Manual</a></div>
 </div>
 <div class="logo3d"><img src="assets/logo.svg" alt="Logo do MilizOS: um N em topologia de rede dentro de um escudo hexagonal"></div>
 </div></header>
 
 <div class="stats">
-<div><b>362</b><span>ferramentas catalogadas</span></div>
+<div><b>4 GB</b><span>de RAM bastam</span></div>
 <div><b>2.312</b><span>pacotes na imagem</span></div>
 <div><b>2,8 GB</b><span>tamanho da ISO</span></div>
 <div><b>3</b><span>perfis: SOC, redes, sensor</span></div>
@@ -76,37 +93,36 @@ footer b{color:var(--tx)}
 
 <section id="recursos"><div class="wrap">
 <h2>O que só o MilizOS faz</h2>
-<p class="sub">Tudo pelo comando <code>nos</code>, a central da distribuição. Parte destes recursos ainda está em validação; veja os <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md">problemas conhecidos</a>.</p>
+<p class="sub">Um sistema totalmente gravável em que tudo tem história, e dois aplicativos que não existem em nenhuma outra distribuição. O que foi e o que não foi testado está nos <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md">problemas conhecidos</a>.</p>
 <div class="grid">
-<div class="card"><h3>Checkpoints com rollback</h3><p>O sistema tira um snapshot antes de cada <code style="display:inline;padding:1px 5px">dnf</code>. Quebrou? Volte pelo terminal ou direto pelo menu de boot — mantendo acesso total de escrita, diferente de um sistema imutável.</p><code>nos checkpoint rollback 12</code></div>
-<div class="card"><h3>Linha do tempo dos dados</h3><p>Snapshots somente-leitura do <code style="display:inline;padding:1px 5px">/home</code> de hora em hora. Arquivo apagado ou criptografado por ransomware volta de ontem com um comando.</p><code>nos data restore ~/projeto --at ontem</code></div>
-<div class="card"><h3>Modo incidente</h3><p>Um comando inicia a captura de tráfego, coleta o estado volátil, isola a máquina da rede, cria um checkpoint e fecha um pacote de evidências com manifesto SHA-256 e linha do tempo.</p><code>sudo nos incident start</code></div>
-<div class="card"><h3>Treino de detecção</h3><p>Gera tráfego de ataque sintético e passa pelo Suricata com as suas regras. O relatório mostra, por técnica MITRE ATT&amp;CK, o que o sensor viu e o que deixou passar.</p><code>sudo nos drill run</code></div>
-<div class="card"><h3>Atestação de integridade</h3><p>Confere cada arquivo de pacote contra o banco RPM, procura executáveis sem dono e compara com o selo gravado. Veredito: íntegro ou alterado.</p><code>sudo nos attest</code></div>
-<div class="card"><h3>Forja de sensores</h3><p>Gera uma ISO que instala sozinha com a sua configuração. Espete o pendrive, ligue a máquina e ela vira um sensor IDS pronto.</p><code>nos forge --iso MilizOS.iso</code></div>
-<div class="card"><h3>Outras distribuições dentro</h3><p>Precisa de uma ferramenta que só existe em outra distribuição? Ela roda numa caixa integrada, com a sua pasta pessoal e a sua rede, sem tocar na base.</p><code>nos box debian</code></div>
-<div class="card"><h3>Sensor IDS em um perfil</h3><p>O perfil <i>sensor</i> sobe o Suricata na interface certa, com regras atualizáveis, sem interface gráfica e pronto para rack.</p><code>nos sensor status</code></div>
-<div class="card"><h3>Resgate pela mídia</h3><p>Apagaram o <code style="display:inline;padding:1px 5px">/boot</code>? Inicie pelo pendrive: o resgate encontra os checkpoints no disco, restaura o sistema e reinstala o boot.</p><code>sudo nos checkpoint rescue</code></div>
+<div class="card"><h3>Heloisa: a máquina do tempo</h3><p>Um aplicativo que volta <b>qualquer coisa</b> a uma versão anterior: o sistema inteiro, o <code style="display:inline;padding:1px 5px">/home</code>, uma pasta ou um único arquivo de configuração. Como um git da máquina.</p><code>aplicativo Heloisa</code></div>
+<div class="card"><h3>Gravável, com história</h3><p>Nada é somente-leitura: <code style="display:inline;padding:1px 5px">dnf</code>, <code style="display:inline;padding:1px 5px">/etc</code>, <code style="display:inline;padding:1px 5px">/usr</code>, tudo pode mudar. Um ponto da máquina inteira é criado de hora em hora, a cada boot e antes de cada instalação de pacotes.</p><code>snapshots btrfs</code></div>
+<div class="card"><h3>Voltar nunca apaga</h3><p>Antes de qualquer volta, o estado atual vira um ponto. Voltou e se arrependeu? Volte para o ponto anterior. A história só cresce.</p><code>como um git revert</code></div>
+<div class="card"><h3>Pelo menu de boot</h3><p>O sistema não inicia? O GRUB lista os 15 pontos mais recentes, cada um com o kernel daquele momento. O estado quebrado fica guardado para análise.</p><code>submenu Heloisa no GRUB</code></div>
+<div class="card"><h3>Resgate pela mídia</h3><p>Apagaram o <code style="display:inline;padding:1px 5px">/boot</code>? Inicie pelo pendrive: a Heloisa encontra os pontos no disco, restaura o sistema e reinstala o boot.</p><code>Heloisa em modo live</code></div>
+<div class="card"><h3>Pandora: caixas Linux</h3><p>Debian, Kali, Alma, Ubuntu, Arch e outros rodando dentro do MilizOS. O que você instala na caixa ganha atalho no menu do GNOME sozinho, e continua rodando na caixa.</p><code>aplicativo Pandora</code></div>
+<div class="card"><h3>Rede isolada ou em ponte</h3><p>Caixa <i>isolada</i> só sai para a internet: não alcança sua rede local nem o host. Caixa em <i>ponte</i> usa a rede do host, para varredura e captura.</p><code>dois modos por caixa</code></div>
+<div class="card"><h3>Destruiu, sumiu</h3><p>Apagar uma caixa leva junto os programas, os atalhos e a pasta dela. O sistema base não é tocado.</p><code>descartável de verdade</code></div>
+<div class="card"><h3>Sem comandos próprios</h3><p>As ferramentas são as originais, com o nome e o manual de sempre. Os pontos ficam em <code style="display:inline;padding:1px 5px">/.heloisa</code>, legíveis com <code style="display:inline;padding:1px 5px">cp</code> e <code style="display:inline;padding:1px 5px">diff</code>; as caixas são podman comum.</p><code>btrfs · podman · dnf</code></div>
+<div class="card"><h3>Roda em 4 GB</h3><p>Swap comprimido em RAM e nenhum efeito pesado no desktop: a animação 3D ficou só na tela de boot.</p><code>zram + zstd</code></div>
+<div class="card"><h3>Sensor IDS em um perfil</h3><p>O perfil <i>sensor</i> sobe o Suricata na interface certa, sem interface gráfica e pronto para rack.</p><code>perfil sensor</code></div>
 </div></div></section>
 
-<section class="alt"><div class="wrap two">
-<div><h2>Treine o seu sensor</h2><p class="sub">Nenhum pacote sai para a rede: o tráfego de ataque é gerado em arquivo e analisado offline. Você descobre as lacunas das suas regras antes que um adversário descubra.</p>
-<p class="sub" style="margin:0">Os cenários também podem ser exportados em pcap para reproduzir na rede de laboratório com <code>tcpreplay</code>.</p></div>
-<pre><span class="c">$</span> sudo nos drill run
-<span class="a">▍Treino de detecção</span>
-  <span class="g">✔ DETECTADO</span>  T1046      Varredura de portas TCP (SYN)
-  <span class="g">✔ DETECTADO</span>  T1190      Injeção de SQL automatizada
-  <span class="g">✔ DETECTADO</span>  T1059      Shell reversa devolvendo uid=0(root)
-  <span class="r">✘ PASSOU   </span>  T1071.004  Túnel por consultas DNS
-  <span class="g">✔ DETECTADO</span>  T1110      Força bruta de SSH
-
-  Cobertura: 4/5 técnicas (80%)
-  Lacunas: T1071.004 (dnstunnel)</pre>
+<section><div class="wrap two">
+<div><h2>Nada é formato próprio</h2><p class="sub">Cada ponto da Heloisa é um snapshot btrfs comum, montado somente leitura em <code>/.heloisa</code>. Se o aplicativo sumir amanhã, as ferramentas de sempre continuam lendo tudo.</p>
+<p class="sub" style="margin:0">O mesmo vale para a Pandora: as caixas aparecem em <code>podman ps</code> e <code>distrobox list</code>.</p></div>
+<pre><span class="c">$</span> ls /.heloisa
+1  2  3  7  8  12  13
+<span class="c">$</span> cat /.heloisa/12/info.json
+{"id": 12, "time": "2026-11-11 14:02:10",
+ "kind": "dnf", "desc": "antes de: dnf install zeek"}
+<span class="c">$</span> diff -u /.heloisa/12/root/etc/fstab /etc/fstab
+<span class="c">$</span> sudo cp -a /.heloisa/7/home/ana/relatorio.odt ~/</pre>
 </div></section>
 
 <section id="ferramentas"><div class="wrap">
 <h2>Ferramentas</h2>
-<p class="sub">Organizadas por função no menu e no terminal. <code>nos tools</code> lista as categorias; <code>nos tools dns</code> busca por nome ou descrição.</p>
+<p class="sub">Organizadas por função no menu e no terminal. Cada uma com o seu próprio nome e manual.</p>
 <table>
 <tr><th>Categoria</th><th>Exemplos</th></tr>
 <tr><td>Tráfego e captura</td><td>Wireshark, tcpdump, tshark, ngrep, tcpflow, tcpreplay, mitmproxy, argus, nfdump</td></tr>
@@ -122,7 +138,67 @@ footer b{color:var(--tx)}
 <p class="sub" style="margin-top:18px">A lista exata depende do que existe nos repositórios do Fedora.</p>
 </div></section>
 
-<section class="alt" id="baixar"><div class="wrap two">
+<section class="alt" id="heloisa"><div class="wrap two">
+<div><span class="tag">Máquina do tempo</span><h2>Heloisa volta qualquer coisa</h2>
+<p class="sub" style="margin-bottom:18px">O sistema é totalmente gravável. A segurança vem de outro lugar: tudo tem história, como em um repositório git.</p>
+<ul class="ck">
+<li><b>A máquina inteira</b>: sistema, arquivos pessoais e logs congelados em um ponto, em menos de um segundo.</li>
+<li><b>Um arquivo, uma pasta</b>: todas as versões que já existiram, com diff, inclusive do que foi apagado.</li>
+<li><b>Pontos automáticos</b>: de hora em hora, a cada boot e antes de cada instalação de pacotes.</li>
+<li><b>Voltar nunca apaga</b>: o estado atual vira um ponto antes. Dá para desfazer o desfazer.</li>
+<li><b>Quase sem custo</b>: um ponto só ocupa o que mudar depois dele, e os antigos saem sozinhos se o disco apertar.</li>
+</ul></div>
+<div><img class="shot" src="assets/heloisa-linha-do-tempo.png" alt="Heloisa: linha do tempo com sete pontos, cada um com o botão Voltar para cá" loading="lazy"></div>
+</div>
+<div class="wrap two" style="margin-top:34px">
+<div><img class="shot" src="assets/heloisa-qualquer-coisa.png" alt="Heloisa: as versões de /etc/teste.conf em cada ponto" loading="lazy"></div>
+<div><img class="shot" src="assets/heloisa-diff.png" alt="Heloisa: diff colorido entre a versão de um ponto e a atual" loading="lazy"></div>
+</div></section>
+
+<section id="pandora"><div class="wrap two">
+<div><img class="shot" src="assets/pandora-caixas.png" alt="Pandora: uma caixa Alpine isolada com o Htop exportado para o menu" loading="lazy"></div>
+<div><span class="tag">Caixas Linux</span><h2>Pandora: outro Linux, pronto para jogar fora</h2>
+<p class="sub" style="margin-bottom:18px">Debian, Kali, AlmaLinux, Ubuntu, Fedora, Arch, Rocky, openSUSE, Alpine ou Parrot dentro do MilizOS, sem root.</p>
+<ul class="ck">
+<li><b>Atalho automático</b>: instalou na caixa, apareceu no menu do GNOME. Continua rodando na caixa.</li>
+<li><b>Isolada</b>: só sai para a internet. Rede local e host são recusados; pasta pessoal separada.</li>
+<li><b>Ponte</b>: usa a rede do host, para varredura e captura.</li>
+<li><b>Destruiu, sumiu</b>: programas, atalhos e pasta vão embora. O sistema base não é tocado.</li>
+</ul></div>
+</div></section>
+
+<section class="alt" id="porbaixo"><div class="wrap">
+<h2>Por baixo do capô</h2>
+<p class="sub">Sem mágica e sem formato próprio: btrfs, podman, dnf e systemd, combinados. Escolha um tema.</p>
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-p="p1">Arquitetura</button>
+<button role="tab" aria-selected="false" data-p="p2">Como um ponto funciona</button>
+<button role="tab" aria-selected="false" data-p="p3">Rede das caixas</button>
+<button role="tab" aria-selected="false" data-p="p4">Boot e resgate</button>
+<button role="tab" aria-selected="false" data-p="p5">Atualização automática</button>
+</div>
+<div class="pane on" id="p1"><img class="diag" src="assets/arquitetura.svg" alt="Três camadas: aplicativos (Heloisa, Pandora, instalador, ferramentas), motores (heloisa-engine, podman e distrobox, dnf e systemd) e armazenamento (btrfs, /boot, zram)" loading="lazy"><p>Quatro pacotes próprios sobre um Fedora 44. A Heloisa e a Pandora são interfaces para ferramentas que já existem; se elas sumirem, o que criaram continua legível.</p></div>
+<div class="pane" id="p2"><img class="diag" src="assets/heloisa-pontos.svg" alt="O volume btrfs com os subvolumes root, home, log e snapshots; criar um ponto tira um snapshot dos três; voltar transforma o estado atual em ponto e troca o subvolume" loading="lazy"><p>O btrfs é copy-on-write: o ponto não copia arquivos, só segura os blocos daquele instante. Os pontos ficam em <code>/.heloisa</code>, somente leitura.</p></div>
+<div class="pane" id="p3"><img class="diag" src="assets/pandora-rede.svg" alt="A caixa isolada alcança só a internet e é recusada na rede local; a caixa em ponte usa a rede do host; aplicativos instalados viram atalhos no menu" loading="lazy"><p>O isolamento é um conjunto de regras nftables aplicado dentro da rede da própria caixa toda vez que ela liga: endereços privados são recusados, o resto passa.</p></div>
+<div class="pane" id="p4"><img class="diag" src="assets/boot.svg" alt="Firmware, GRUB, initramfs, raiz btrfs e GNOME; pelo submenu Heloisa do GRUB um gancho no initramfs troca a raiz pelo ponto escolhido" loading="lazy"><p>A volta pelo menu de boot acontece antes de o sistema montar a raiz, com o kernel daquele ponto. O sistema que estava quebrado é guardado como um ponto novo.</p></div>
+<div class="pane" id="p5"><pre><span class="a">mantenedor</span>                  <span class="a">GitHub Pages</span>                 <span class="a">cada MilizOS instalado</span>
+corrige o código  ──push──▶  /milizos/repo/  ◀──todo dia──  milizos-update.timer
+gera os pacotes              (repositório dnf)              dnf upgrade --repo=milizos
+                                                            └─ <span class="g">Heloisa cria um ponto antes</span></pre><p style="margin-top:14px">Uma correção publicada chega a todas as máquinas em até 24 horas. Como passa pelo <code>dnf</code>, tem volta.</p></div>
+</div></section>
+
+<section id="docs"><div class="wrap">
+<h2>Documentação</h2>
+<p class="sub">Escrita para ser lida: com capturas reais, diagramas e os limites de cada recurso.</p>
+<div class="docs">
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/MANUAL.md"><b>Manual</b><span>Usar a Heloisa, a Pandora e o sistema no dia a dia.</span></a>
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/ADMINISTRADOR.md"><b>Guia do administrador</b><span>Instalar em escala, atualizações, operação e solução de problemas.</span></a>
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/ARQUITETURA.md"><b>Por baixo do capô</b><span>Disco, boot, snapshots, rede das caixas e atualização, em detalhe.</span></a>
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md"><b>O que foi testado</b><span>A lista honesta: o que passou, o que falta e os limites.</span></a>
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CONTRIBUTING.md"><b>Como colaborar</b><span>Corrigir um bug ou propor um recurso.</span></a>
+</div></div></section>
+
+<section id="baixar"><div class="wrap two">
 <div><h2>Baixar e instalar</h2>
 <ol class="steps">
 <li>Baixe a ISO em <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Releases</a> e confira o SHA-256.</li>
@@ -130,25 +206,40 @@ footer b{color:var(--tx)}
 <li>Inicie pelo pendrive. O sistema sobe em modo live e o instalador abre sozinho.</li>
 <li>Escolha disco, usuário e perfil: <b>SOC</b>, <b>Redes</b> ou <b>Sensor</b>.</li>
 </ol>
-<p class="sub" style="margin-top:14px">Requisitos: x86-64, 4 GB de RAM (8 GB recomendado), 30 GB de disco.</p></div>
+<p class="sub" style="margin-top:14px">Requisitos: x86-64, 4 GB de RAM, 30 GB de disco.</p></div>
 <pre><span class="c"># conferir a integridade</span>
-cat MilizOS-1.0-x86_64.iso.part-* > MilizOS-1.0-x86_64.iso
-sha256sum -c MilizOS-1.0-x86_64.iso.sha256
+cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso
+sha256sum -c MilizOS-2.0-x86_64.iso.sha256
 
 <span class="c"># gravar no pendrive (troque sdX pelo seu dispositivo)</span>
-sudo dd if=MilizOS-1.0-x86_64.iso of=/dev/sdX \
+sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX \
         bs=4M status=progress oflag=sync
 
 <span class="c"># ou testar em máquina virtual</span>
 qemu-system-x86_64 -enable-kvm -m 4G -smp 4 \
-        -cdrom MilizOS-1.0-x86_64.iso</pre>
+        -cdrom MilizOS-2.0-x86_64.iso</pre>
 </div></section>
+
+<section id="cafe"><div class="wrap"><div class="cafe">
+<div class="cup" aria-hidden="true">☕</div>
+<h2>Doe um café</h2>
+<p class="sub" style="margin:0 auto">O MilizOS é feito por uma pessoa só, no tempo livre, e é gratuito. Se ele te economizou uma noite de trabalho, um café ajuda a próxima versão a sair.</p>
+<div class="pix"><code id="pix">danielmaraboo@gmail.com</code><button id="copiar" type="button">Copiar chave Pix</button></div>
+<p class="sub" style="margin:0 auto;font-size:14px">Pix, chave do tipo e-mail. Qualquer valor. Obrigado.</p>
+</div></div></section>
 
 <footer><div class="wrap">
 <p><b>MilizOS</b> foi criado por <b>Daniel Pereira da Silva</b> · <a href="https://www.linkedin.com/in/danielpereira-linux/">linkedin.com/in/danielpereira-linux</a></p>
 <p>Software livre. Baseado em Fedora Linux; o MilizOS não é afiliado ao Projeto Fedora nem à Red Hat. Use as ferramentas de segurança apenas em sistemas que você tem autorização para testar.</p>
 </div></footer>
 
+<script>
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+document.querySelectorAll('.tabs button').forEach(o=>o.setAttribute('aria-selected',o===b));
+document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.p))}));
+document.getElementById('copiar').addEventListener('click',e=>{const t=document.getElementById('pix').textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{e.target.textContent='Copiado';setTimeout(()=>e.target.textContent='Copiar chave Pix',1800)}).catch(()=>{const r=document.createRange();r.selectNode(document.getElementById('pix'));getSelection().removeAllRanges();getSelection().addRange(r)})});
+</script>
 <script>
 (()=>{const c=document.getElementById('mesh'),x=c.getContext('2d');let w,h,pts=[];
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;

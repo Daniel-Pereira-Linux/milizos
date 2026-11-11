@@ -1,6 +1,6 @@
 Name:           milizos-release
-Version:        1.0
-Release:        3
+Version:        2.0
+Release:        1
 Summary:        Arquivos de release do MilizOS
 License:        MIT
 Obsoletes:      networkos-release < 2

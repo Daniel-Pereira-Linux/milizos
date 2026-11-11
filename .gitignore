@@ -2,3 +2,9 @@ cache/
 out/
 __pycache__/
 *.pyc
+# montagem da ISO: repositorio privado (ver .git-build)
+/build/
+/builder/
+/build.sh
+/tests/
+/.git-build/

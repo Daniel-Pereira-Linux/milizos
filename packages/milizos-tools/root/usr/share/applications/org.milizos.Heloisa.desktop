@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Heloisa
+GenericName=Máquina do tempo
+GenericName[en]=Time machine
+Comment=Volta qualquer coisa a uma versão anterior: o sistema inteiro, uma pasta ou um único arquivo
+Comment[en]=Roll anything back to an earlier version: the whole system, a folder or a single file
+Exec=heloisa %f
+Icon=heloisa
+Terminal=false
+Categories=System;Utility;
+Keywords=rollback;snapshot;backup;restaurar;versão;voltar;tempo;
+StartupWMClass=org.milizos.Heloisa

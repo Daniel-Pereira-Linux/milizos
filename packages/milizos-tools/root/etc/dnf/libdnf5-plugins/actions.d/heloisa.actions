@@ -1,0 +1,2 @@
+# Heloisa: fotografa a maquina antes de cada transacao do dnf
+pre_transaction::::/usr/libexec/milizos/heloisa-engine auto dnf

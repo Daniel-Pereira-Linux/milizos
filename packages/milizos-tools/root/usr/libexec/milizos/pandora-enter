@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+# Entra em uma caixa da Pandora (liga, aplica o modo de rede e executa): pandora-enter NOME [-- comando]
+exec /usr/bin/python3 /usr/lib/milizos/pandora/engine.py enter "$@"

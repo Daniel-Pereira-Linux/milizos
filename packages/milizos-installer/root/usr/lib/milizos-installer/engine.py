@@ -383,6 +383,9 @@ class Installer:
             fstab.append(f"{root}  /      btrfs  subvol=root,{o}  0 0")
             fstab.append(f"{root}  /home  btrfs  subvol=home,{o}  0 0")
             fstab.append(f"{root}  /var/log  btrfs  subvol=log,{o}  0 0")
+            # todos os pontos da Heloisa, somente leitura, para cp/diff/rsync comuns
+            fstab.append(f"{root}  /.heloisa  btrfs  subvol=snapshots,ro,noatime,nofail  0 0")
+            os.makedirs(f"{TARGET}/.heloisa", exist_ok=True)
         else:
             fstab.append(f"{root}  /      {self.fs}  defaults  0 1")
         fstab.append(f"UUID={u['boot']}  /boot      ext4  defaults  1 2")
@@ -459,6 +462,10 @@ class Installer:
         quiet = "rhgb quiet"
         if self.cfg.get("profile") == "sensor":
             quiet = "quiet"
+        # argumentos extras do kernel (ex.: console serial de um sensor em rack)
+        ka = str(self.cfg.get("kernel_args") or "").strip()
+        if ka and re.fullmatch(r"[A-Za-z0-9_.,=:/@ -]+", ka):
+            extra.append(ka)
         cmdline = " ".join([f"root={root}", "ro"] + extra + [quiet])
         os.makedirs(f"{TARGET}/etc/kernel", exist_ok=True)
         self._write("/etc/kernel/cmdline", cmdline + "\n")
@@ -531,10 +538,11 @@ class Installer:
             open(f"{TARGET}/.autorelabel", "w").close()
 
     def step_finish(self):
-        if self.fs == "btrfs" and os.path.exists(f"{TARGET}/usr/bin/nos"):
+        eng = "/usr/libexec/milizos/heloisa-engine"
+        if self.fs == "btrfs" and os.path.exists(TARGET + eng):
             # ponto de retorno "de fabrica": sempre da para voltar a instalacao limpa
-            run(["nos", "checkpoint", "create", "--kind", "install", "instalação limpa"], chroot=True,
-                check=False, env={"NOS_ROOTDEV": self.rootdev, "NOS_BOOTUUID": self.uuids["boot"]})
+            run([eng, "create", json.dumps({"kind": "install", "desc": "instalação limpa"})], chroot=True,
+                check=False, env={"HELOISA_ROOTDEV": self.rootdev, "HELOISA_BOOTUUID": self.uuids["boot"]})
         try:
             os.makedirs(f"{TARGET}/var/log", exist_ok=True)
             shutil.copyfile(LOG, f"{TARGET}/var/log/milizos-install.log")

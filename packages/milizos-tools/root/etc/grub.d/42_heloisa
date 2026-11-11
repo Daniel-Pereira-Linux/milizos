@@ -1,0 +1,7 @@
+#!/usr/bin/sh
+# Inclui o submenu de pontos no tempo (mantido pela Heloisa)
+cat <<'CFG'
+if [ -f ${prefix}/heloisa.cfg ]; then
+  source ${prefix}/heloisa.cfg
+fi
+CFG

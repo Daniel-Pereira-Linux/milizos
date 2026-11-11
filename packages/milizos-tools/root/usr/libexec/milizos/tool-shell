@@ -5,6 +5,5 @@ desc=$(python3 -c 'import json,sys
 for c in json.load(open("/usr/share/milizos/catalog.json")).values():
     for x in c["tools"]:
         if x["cmd"]==sys.argv[1]: print(x["desc"])' "$t" 2>/dev/null)
-if [ "$t" = nos ]; then nos help; nos status
-else printf '\033[38;2;0;240;200m▍%s\033[0m  %s\n\033[2m  man %s  ·  %s --help\033[0m\n\n' "$t" "$desc" "$t" "$t"; fi
+printf '\033[38;2;0;240;200m▍%s\033[0m  %s\n\033[2m  man %s  ·  %s --help\033[0m\n\n' "$t" "$desc" "$t" "$t"
 exec "${SHELL:-/usr/bin/zsh}"

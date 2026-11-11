@@ -1,0 +1,9 @@
+[Unit]
+Description=Heloisa - ponto automatico da linha do tempo
+ConditionPathExists=!/run/initramfs/live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/milizos/heloisa-engine auto hora ponto de hora em hora
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Pandora
+GenericName=Caixas Linux
+GenericName[en]=Linux boxes
+Comment=Debian, Kali, Alma, Arch e outros em caixas descartáveis, com os aplicativos no menu
+Comment[en]=Debian, Kali, Alma, Arch and more in disposable boxes, with their apps in the menu
+Exec=pandora
+Icon=pandora
+Terminal=false
+Categories=System;Utility;
+Keywords=container;distrobox;podman;kali;debian;caixa;
+StartupWMClass=org.milizos.Pandora
