@@ -55,12 +55,12 @@ footer b{color:var(--tx)}
 </head>
 <body>
 <nav><div class="wrap"><img src="assets/logo.svg" alt=""><b>MilizOS</b>
-<div class="links"><a class="opt" href="#recursos">Recursos</a><a class="opt" href="#ferramentas">Ferramentas</a><a href="#baixar">Baixar</a><a class="opt" href="#colaborar">Colaborar</a><a href="https://github.com/Daniel-Pereira-Linux/milizos">GitHub</a></div></div></nav>
+<div class="links"><a class="opt" href="#recursos">Recursos</a><a class="opt" href="#ferramentas">Ferramentas</a><a href="#baixar">Baixar</a><a href="https://github.com/Daniel-Pereira-Linux/milizos">GitHub</a></div></div></nav>
 
 <header><canvas id="mesh"></canvas><div class="wrap hero">
 <div>
 <span class="tag">SOC · Blue Team · Network Engineering</span>
-<h1>O Kali é para quem ataca.<br><span>O MilizOS é para quem defende.</span></h1>
+<h1>A distribuição Linux<br><span>para quem defende.</span></h1>
 <p class="lead">Uma distribuição Linux baseada em Fedora, feita para times de segurança e redes: sistema que volta no tempo, modo incidente com cadeia de custódia, treino de detecção contra o próprio sensor e centenas de ferramentas prontas — em uma única ISO com instalador próprio.</p>
 <div class="btns"><a class="btn pri" href="#baixar">Baixar a ISO</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos">Código-fonte</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/MANUAL.md">Manual</a></div>
 </div>
@@ -84,7 +84,7 @@ footer b{color:var(--tx)}
 <div class="card"><h3>Treino de detecção</h3><p>Gera tráfego de ataque sintético e passa pelo Suricata com as suas regras. O relatório mostra, por técnica MITRE ATT&amp;CK, o que o sensor viu e o que deixou passar.</p><code>sudo nos drill run</code></div>
 <div class="card"><h3>Atestação de integridade</h3><p>Confere cada arquivo de pacote contra o banco RPM, procura executáveis sem dono e compara com o selo gravado. Veredito: íntegro ou alterado.</p><code>sudo nos attest</code></div>
 <div class="card"><h3>Forja de sensores</h3><p>Gera uma ISO que instala sozinha com a sua configuração. Espete o pendrive, ligue a máquina e ela vira um sensor IDS pronto.</p><code>nos forge --iso MilizOS.iso</code></div>
-<div class="card"><h3>Kali, Debian e Arch dentro</h3><p>Precisa de uma ferramenta que só existe em outra distribuição? Ela roda numa caixa integrada, com a sua pasta pessoal e a sua rede, sem tocar na base.</p><code>nos box kali</code></div>
+<div class="card"><h3>Outras distribuições dentro</h3><p>Precisa de uma ferramenta que só existe em outra distribuição? Ela roda numa caixa integrada, com a sua pasta pessoal e a sua rede, sem tocar na base.</p><code>nos box debian</code></div>
 <div class="card"><h3>Sensor IDS em um perfil</h3><p>O perfil <i>sensor</i> sobe o Suricata na interface certa, com regras atualizáveis, sem interface gráfica e pronto para rack.</p><code>nos sensor status</code></div>
 <div class="card"><h3>Resgate pela mídia</h3><p>Apagaram o <code style="display:inline;padding:1px 5px">/boot</code>? Inicie pelo pendrive: o resgate encontra os checkpoints no disco, restaura o sistema e reinstala o boot.</p><code>sudo nos checkpoint rescue</code></div>
 </div></div></section>
@@ -119,7 +119,7 @@ footer b{color:var(--tx)}
 <tr><td>Redes sem fio e rádio</td><td>aircrack-ng, Kismet, hcxtools, GNU Radio, rtl-sdr, HackRF</td></tr>
 <tr><td>Auditoria e hardening</td><td>OpenSCAP, Lynis, AIDE, trivy, rkhunter, checksec, testssl</td></tr>
 </table>
-<p class="sub" style="margin-top:18px">A lista exata depende do que existe nos repositórios do Fedora. O que falta (por exemplo Metasploit ou Burp Suite) fica a um comando de distância com <code>nos box kali</code>.</p>
+<p class="sub" style="margin-top:18px">A lista exata depende do que existe nos repositórios do Fedora.</p>
 </div></section>
 
 <section class="alt" id="baixar"><div class="wrap two">
@@ -142,21 +142,6 @@ sudo dd if=MilizOS-1.0-x86_64.iso of=/dev/sdX \
 <span class="c"># ou testar em máquina virtual</span>
 qemu-system-x86_64 -enable-kvm -m 4G -smp 4 \
         -cdrom MilizOS-1.0-x86_64.iso</pre>
-</div></section>
-
-<section id="colaborar"><div class="wrap two">
-<div><h2>Colabore</h2>
-<p class="sub">O MilizOS inteiro é construído por scripts, sem root, dentro de um contêiner. Adicionar uma ferramenta é editar uma linha; criar um comando <code>nos</code> é um arquivo Python.</p>
-<div class="btns"><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CONTRIBUTING.md">Guia de contribuição</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/BUILD.md">Como buildar</a></div></div>
-<pre>git clone https://github.com/Daniel-Pereira-Linux/milizos
-cd milizos
-
-<span class="c"># constrói tudo: pacotes, base, configuração e ISO</span>
-./build.sh all
-
-<span class="c"># testa a ISO numa VM e tira uma captura de tela</span>
-tests/vm.py start live
-tests/vm.py shot tela.png</pre>
 </div></section>
 
 <footer><div class="wrap">
