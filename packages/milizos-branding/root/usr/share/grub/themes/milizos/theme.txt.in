@@ -1,0 +1,51 @@
+# Tema GRUB do MilizOS
+title-text: ""
+desktop-image: "background.png"
+desktop-color: "#070B16"
+terminal-font: "@MONO@"
+terminal-left: "10%"
+terminal-top: "10%"
+terminal-width: "80%"
+terminal-height: "80%"
+
++ image { left = 50%-225 top = 12% width = 450 height = 120 file = "wordmark.png" }
+
++ boot_menu {
+  left = 50%-320
+  top = 40%
+  width = 640
+  height = 40%
+  item_font = "@SANS@"
+  item_color = "#9FB0D0"
+  selected_item_color = "#00F0C8"
+  item_height = 42
+  item_padding = 14
+  item_spacing = 6
+  icon_width = 0
+  icon_height = 0
+  item_icon_space = 0
+  selected_item_pixmap_style = "select_*.png"
+  scrollbar = false
+}
+
++ progress_bar {
+  id = "__timeout__"
+  left = 50%-320
+  top = 84%
+  width = 640
+  height = 5
+  fg_color = "#00F0C8"
+  bg_color = "#1B2744"
+  border_color = "#1B2744"
+  text = ""
+}
+
++ label {
+  left = 0
+  top = 100%-56
+  width = 100%
+  align = "center"
+  color = "#62708F"
+  font = "@SMALL@"
+  text = "Setas: selecionar   |   Enter: iniciar   |   E: editar   |   C: console"
+}

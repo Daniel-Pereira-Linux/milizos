@@ -1,0 +1,13 @@
+[Unit]
+Description=MilizOS - preparacao da sessao live
+ConditionKernelCommandLine=rd.live.image
+Before=display-manager.service systemd-user-sessions.service
+After=systemd-tmpfiles-setup.service dbus.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/milizos/live-setup
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+{
+  "uuid": "milizos-fx@milizos.org",
+  "name": "MilizOS FX",
+  "description": "Fundo animado do MilizOS: globo de rede 3D em tempo real com a logo, na área de trabalho e na tela de login.",
+  "shell-version": ["48", "49", "50", "51"],
+  "session-modes": ["user", "gdm"],
+  "version": 1
+}

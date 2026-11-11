@@ -1,0 +1,45 @@
+#!/usr/bin/bash
+# Prepara a sessao live do MilizOS (roda apenas quando iniciado pela midia).
+# Nada disto vai para o sistema instalado: o instalador copia a imagem original.
+U=liveuser
+if ! id $U &>/dev/null; then
+    G=wheel
+    for g in wireshark dialout; do getent group $g >/dev/null && G+=",$g"; done
+    useradd -m -c "MilizOS Live" -G "$G" -s /usr/bin/zsh $U
+    passwd -d $U >/dev/null
+fi
+echo "$U ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/90-liveuser
+chmod 440 /etc/sudoers.d/90-liveuser
+echo milizos-live > /etc/hostname
+hostname milizos-live
+
+mkdir -p /etc/gdm
+cat > /etc/gdm/custom.conf <<CONF
+[daemon]
+AutomaticLoginEnable=True
+AutomaticLogin=$U
+CONF
+
+H=/home/$U
+install -d -o $U -g $U $H/.config $H/.config/autostart $H/.local $H/.local/share $H/.local/share/applications
+sed '/^NoDisplay=/d' /usr/share/applications/milizos-installer.desktop > $H/.local/share/applications/milizos-installer.desktop
+cp $H/.local/share/applications/milizos-installer.desktop $H/.config/autostart/
+chown $U:$U $H/.local/share/applications/milizos-installer.desktop $H/.config/autostart/milizos-installer.desktop
+
+cat > /etc/dconf/db/distro.d/50-live <<CONF
+[org/gnome/shell]
+favorite-apps=['milizos-installer.desktop', 'org.mozilla.firefox.desktop', 'org.gnome.Ptyxis.desktop', 'milizos-nos.desktop', 'org.wireshark.Wireshark.desktop', 'org.gnome.Nautilus.desktop']
+welcome-dialog-last-shown-version='9999'
+
+[org/gnome/desktop/screensaver]
+lock-enabled=false
+
+[org/gnome/desktop/session]
+idle-delay=uint32 0
+
+[org/gnome/settings-daemon/plugins/power]
+sleep-inactive-ac-type='nothing'
+sleep-inactive-battery-type='nothing'
+CONF
+dconf update
+exit 0

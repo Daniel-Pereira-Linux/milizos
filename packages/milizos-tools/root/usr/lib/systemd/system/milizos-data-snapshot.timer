@@ -1,0 +1,10 @@
+[Unit]
+Description=MilizOS: linha do tempo de /home (de hora em hora)
+
+[Timer]
+OnBootSec=5min
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

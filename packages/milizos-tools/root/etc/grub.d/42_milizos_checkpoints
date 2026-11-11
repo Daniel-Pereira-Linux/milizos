@@ -1,0 +1,7 @@
+#!/usr/bin/sh
+# Inclui o submenu de checkpoints do MilizOS (mantido por 'nos checkpoint')
+cat <<'CFG'
+if [ -f ${prefix}/checkpoints.cfg ]; then
+  source ${prefix}/checkpoints.cfg
+fi
+CFG

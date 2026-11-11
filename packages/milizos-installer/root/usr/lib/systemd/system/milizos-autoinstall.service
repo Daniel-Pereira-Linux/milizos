@@ -1,0 +1,15 @@
+[Unit]
+Description=MilizOS - instalacao desassistida
+ConditionKernelCommandLine=rd.live.image
+ConditionKernelCommandLine=milizos.autoinstall
+After=milizos-live.service systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/milizos/autoinstall
+StandardOutput=journal+console
+StandardError=journal+console
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

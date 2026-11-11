@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+# Ativa o tema de boot do MilizOS
+[ -f /usr/share/plymouth/themes/milizos/milizos.plymouth ] || exit 0
+command -v plymouth-set-default-theme >/dev/null && plymouth-set-default-theme milizos
+exit 0

@@ -1,0 +1,17 @@
+# MilizOS - configuracao padrao do zsh
+HISTFILE=~/.zsh_history; HISTSIZE=50000; SAVEHIST=50000
+setopt inc_append_history hist_ignore_dups hist_ignore_space extended_history auto_cd interactive_comments
+autoload -Uz compinit && compinit -d ~/.cache/zcompdump 2>/dev/null
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+bindkey -e
+bindkey '^[[1;5C' forward-word; bindkey '^[[1;5D' backward-word
+bindkey '^[[H' beginning-of-line; bindkey '^[[F' end-of-line; bindkey '^[[3~' delete-char
+setopt prompt_subst
+PROMPT='%F{#00F0C8}⬡%f %F{#7C8AA8}%n@%m%f %F{#2D7FF9}%~%f %(?..%F{red}[%?]%f )%(!.#.›) '
+alias ll='ls -lh --color=auto' la='ls -lah --color=auto' ls='ls --color=auto' grep='grep --color=auto'
+alias ip='ip -c' ports='ss -tulpn' myip='ip -br -4 addr'
+for f in /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
+         /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+    [ -r $f ] && source $f
+done

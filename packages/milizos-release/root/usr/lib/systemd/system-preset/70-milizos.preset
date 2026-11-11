@@ -1,0 +1,25 @@
+# MilizOS - politica de servicos padrao (o perfil escolhido no instalador ajusta o restante)
+enable NetworkManager.service
+enable firewalld.service
+enable auditd.service
+enable chronyd.service
+enable gdm.service
+enable fstrim.timer
+enable milizos-live.service
+enable milizos-autoinstall.service
+enable milizos-checkpoint-finalize.service
+enable milizos-data-snapshot.timer
+disable sshd.service
+disable sshd.socket
+disable suricata.service
+disable cockpit.socket
+disable lldpd.service
+disable frr.service
+disable fail2ban.service
+disable snmpd.service
+disable dnsmasq.service
+disable openvpn*.service
+disable strongswan.service
+disable clamav-freshclam.service
+disable cups.*
+disable avahi-daemon.*

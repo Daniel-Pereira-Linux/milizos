@@ -1,0 +1,3 @@
+{"disk": "/dev/vda", "filesystem": "btrfs", "encrypt": true, "passphrase": "segredo123",
+ "hostname": "nos-luks", "locale": "pt_BR.UTF-8", "keymap": "br", "timezone": "America/Sao_Paulo",
+ "profile": "neteng", "user": {"name": "analista", "fullname": "Analista SOC", "password": "milizos", "admin": true}}

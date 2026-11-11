@@ -1,0 +1,9 @@
+[org/gnome/login-screen]
+logo='/usr/share/milizos/wordmark.png'
+
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+accent-color='teal'
+
+[org/gnome/shell]
+enabled-extensions=['milizos-fx@milizos.org']

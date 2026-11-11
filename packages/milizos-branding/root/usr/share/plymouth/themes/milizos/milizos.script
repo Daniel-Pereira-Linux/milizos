@@ -1,0 +1,100 @@
+# MilizOS - tela de boot animada (modulo script do Plymouth)
+# Quadros anim-N.png gerados por build/gen-bootanim.py
+FRAMES = 80;
+Window.SetBackgroundTopColor(0.039, 0.063, 0.125);
+Window.SetBackgroundBottomColor(0.016, 0.027, 0.055);
+
+sw = Window.GetWidth();  sh = Window.GetHeight();
+ox = Window.GetX();      oy = Window.GetY();
+zoom = 1;
+if (sh > 1300) zoom = 1.6;
+
+for (i = 0; i < FRAMES; i++) {
+    img = Image("anim-" + i + ".png");
+    if (zoom != 1) img = img.Scale(img.GetWidth() * zoom, img.GetHeight() * zoom);
+    frame[i] = img;
+}
+globe = Sprite(frame[0]);
+gw = frame[0].GetWidth();  gh = frame[0].GetHeight();
+globe.SetX(ox + sw / 2 - gw / 2);
+globe.SetY(oy + sh * 0.40 - gh / 2);
+globe.SetZ(10);
+
+word_img = Image("wordmark.png");
+if (zoom != 1) word_img = word_img.Scale(word_img.GetWidth() * zoom, word_img.GetHeight() * zoom);
+word = Sprite(word_img);
+word.SetX(ox + sw / 2 - word_img.GetWidth() / 2);
+word_y = oy + sh * 0.40 + gh / 2 + 6;
+word.SetY(word_y);
+word.SetZ(10);
+
+# barra de progresso fina sob a marca
+bar_w = 260 * zoom;
+bar_y = word_y + word_img.GetHeight() + 22 * zoom;
+track_img = Image("bar-track.png").Scale(bar_w, 3 * zoom);
+track = Sprite(track_img);
+track.SetX(ox + sw / 2 - bar_w / 2);  track.SetY(bar_y);  track.SetZ(10);
+fill_src = Image("bar-fill.png");
+fill = Sprite();
+fill.SetX(ox + sw / 2 - bar_w / 2);  fill.SetY(bar_y);  fill.SetZ(11);
+
+tick = 0;
+fun refresh_cb() {
+    tick++;
+    globe.SetImage(frame[Math.Int(tick / 2) % FRAMES]);
+}
+Plymouth.SetRefreshFunction(refresh_cb);
+
+fun progress_cb(duration, progress) {
+    w = Math.Int(bar_w * progress);
+    if (w < 1) w = 1;
+    fill.SetImage(fill_src.Scale(w, 3 * zoom));
+}
+Plymouth.SetBootProgressFunction(progress_cb);
+
+# ---------------------------------------------------------- senha (LUKS)
+entry_img = Image("entry.png");
+bullet_img = Image("bullet.png");
+pw.entry = Sprite();  pw.prompt = Sprite();
+pw.y = bar_y + 34 * zoom;
+pw.count = 0;
+
+fun password_cb(prompt, bullets) {
+    track.SetOpacity(0);  fill.SetOpacity(0);
+    pw.entry.SetImage(entry_img);
+    pw.entry.SetX(ox + sw / 2 - entry_img.GetWidth() / 2);
+    pw.entry.SetY(pw.y);  pw.entry.SetZ(20);  pw.entry.SetOpacity(1);
+    pimg = Image.Text("Digite a senha de criptografia do disco", 0.62, 0.69, 0.82, 1, "Sans 11");
+    pw.prompt.SetImage(pimg);
+    pw.prompt.SetX(ox + sw / 2 - pimg.GetWidth() / 2);
+    pw.prompt.SetY(pw.y + entry_img.GetHeight() + 12);  pw.prompt.SetZ(20);  pw.prompt.SetOpacity(1);
+    for (i = 0; i < pw.count; i++) pw.bullet[i].SetOpacity(0);
+    shown = bullets;
+    if (shown > 22) shown = 22;
+    step = bullet_img.GetWidth() + 5;
+    x0 = ox + sw / 2 - (shown * step) / 2;
+    for (i = 0; i < shown; i++) {
+        if (i >= pw.count) { pw.bullet[i] = Sprite(bullet_img);  pw.count = i + 1; }
+        pw.bullet[i].SetX(x0 + i * step);
+        pw.bullet[i].SetY(pw.y + entry_img.GetHeight() / 2 - bullet_img.GetHeight() / 2);
+        pw.bullet[i].SetZ(21);  pw.bullet[i].SetOpacity(1);
+    }
+}
+Plymouth.SetDisplayPasswordFunction(password_cb);
+
+fun normal_cb() {
+    pw.entry.SetOpacity(0);  pw.prompt.SetOpacity(0);
+    for (i = 0; i < pw.count; i++) pw.bullet[i].SetOpacity(0);
+    track.SetOpacity(1);  fill.SetOpacity(1);
+}
+Plymouth.SetDisplayNormalFunction(normal_cb);
+
+# ---------------------------------------------------------- mensagens
+msg = Sprite();
+fun message_cb(text) {
+    mimg = Image.Text(text, 0.49, 0.54, 0.66, 1, "Sans 10");
+    msg.SetImage(mimg);
+    msg.SetX(ox + sw / 2 - mimg.GetWidth() / 2);
+    msg.SetY(oy + sh * 0.90);  msg.SetZ(20);
+}
+Plymouth.SetMessageFunction(message_cb);

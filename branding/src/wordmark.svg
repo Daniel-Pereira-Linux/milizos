@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 400" width="1500" height="400">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00F0C8"/><stop offset="1" stop-color="#2D7FF9"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101A30"/><stop offset="1" stop-color="#070B16"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(10,10) scale(0.742)">
+    <path d="M256 30 L452 143 V369 L256 482 L60 369 V143 Z" fill="url(#bg)" stroke="url(#g)" stroke-width="22" stroke-linejoin="round"/>
+    <path d="M176 344 V168 L336 344 V168" fill="none" stroke="url(#g)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="176" cy="344" r="27" fill="#070B16" stroke="url(#g)" stroke-width="14"/>
+    <circle cx="176" cy="168" r="27" fill="#070B16" stroke="url(#g)" stroke-width="14"/>
+    <circle cx="336" cy="344" r="27" fill="#070B16" stroke="url(#g)" stroke-width="14"/>
+    <circle cx="336" cy="168" r="44" fill="none" stroke="#00F0C8" stroke-width="5" opacity=".35"/>
+    <circle cx="336" cy="168" r="30" fill="#00F0C8"/>
+  </g>
+  <text x="410" y="252" font-family="Inter, 'Noto Sans', sans-serif" font-weight="800" font-size="190" letter-spacing="-6" fill="#F2F6FF">Miliz<tspan fill="url(#g)">OS</tspan></text>
+  <text x="418" y="322" font-family="'JetBrains Mono', monospace" font-weight="500" font-size="40" letter-spacing="9" fill="#7C8AA8">SOC · BLUE TEAM · NETWORK</text>
+</svg>

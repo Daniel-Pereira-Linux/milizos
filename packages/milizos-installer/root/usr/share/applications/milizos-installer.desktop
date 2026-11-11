@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar o MilizOS
+Name[en]=Install MilizOS
+Comment=Instala o MilizOS no disco deste computador
+Comment[en]=Install MilizOS to this computer's disk
+Exec=milizos-installer
+Icon=milizos-installer
+Terminal=false
+Categories=System;
+StartupWMClass=org.milizos.Installer
+NoDisplay=true

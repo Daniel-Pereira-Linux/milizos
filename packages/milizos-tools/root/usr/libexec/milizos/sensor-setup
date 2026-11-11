@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+# Prepara o Suricata do perfil Sensor: interface de captura e conjunto inicial de regras.
+# Ordem de escolha da interface: argumento > escolha salva > rota padrao > primeira placa fisica.
+IF=${1:-}
+[ -z "$IF" ] && [ -s /etc/milizos/sensor-iface ] && IF=$(cat /etc/milizos/sensor-iface)
+[ -n "$IF" ] && [ ! -d "/sys/class/net/$IF" ] && IF=
+[ -z "$IF" ] && IF=$(ip -o route show default 2>/dev/null | awk '{print $5; exit}')
+if [ -z "$IF" ]; then
+    for n in /sys/class/net/*; do
+        [ -e "$n/device" ] && { IF=${n##*/}; break; }
+    done
+fi
+[ -n "$IF" ] || { echo "sensor-setup: nenhuma interface de rede encontrada"; exit 0; }
+mkdir -p /etc/milizos /var/lib/suricata/rules
+echo "$IF" > /etc/milizos/sensor-iface
+if [ -f /etc/sysconfig/suricata ]; then
+    sed -i "s|^OPTIONS=.*|OPTIONS=\"-i $IF --user suricata \"|" /etc/sysconfig/suricata
+fi
+# sem regras baixadas ainda: usa as regras de eventos de protocolo que acompanham o pacote
+if [ ! -s /var/lib/suricata/rules/suricata.rules ]; then
+    cat /etc/suricata/rules/*.rules > /var/lib/suricata/rules/suricata.rules 2>/dev/null
+fi
+chown -R suricata:suricata /var/lib/suricata 2>/dev/null
+restorecon -R /var/lib/suricata /etc/sysconfig/suricata /etc/milizos 2>/dev/null
+echo "sensor-setup: capturando em $IF"

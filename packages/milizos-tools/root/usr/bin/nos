@@ -1,0 +1,498 @@
+#!/usr/bin/python3
+"""nos - central de comando do MilizOS."""
+import argparse
+import datetime
+import getpass
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+
+CATALOG = "/usr/share/milizos/catalog.json"
+C = sys.stdout.isatty()
+def col(s, c): return f"\033[{c}m{s}\033[0m" if C else s
+ac = lambda s: col(s, "38;2;0;240;200")
+dim = lambda s: col(s, "2")
+ok = lambda s: col(s, "32")
+bad = lambda s: col(s, "31")
+warn = lambda s: col(s, "33")
+
+
+def sh(cmd, timeout=20):
+    try:
+        p = subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True, text=True, timeout=timeout)
+        return (p.stdout or p.stderr).strip()
+    except (OSError, subprocess.SubprocessError) as e:
+        return f"(falhou: {e})"
+
+
+def catalog():
+    with open(CATALOG, encoding="utf-8") as f:
+        cat = json.load(f)
+    d = "/usr/share/milizos/catalog.d"
+    for fn in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        try:
+            extra = json.load(open(f"{d}/{fn}", encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for k, v in extra.items():
+            if k in cat:
+                seen = {t["cmd"] for t in cat[k]["tools"]}
+                cat[k]["tools"] += [t for t in v["tools"] if t["cmd"] not in seen]
+            else:
+                cat[k] = v
+    return cat
+
+
+AUTHOR = "Daniel Pereira da Silva"
+AUTHOR_URL = "https://www.linkedin.com/in/danielpereira-linux/"
+
+
+def cmd_about(_a):
+    n = sum(len(v["tools"]) for v in catalog().values())
+    print(ac(r"""
+        ⬡───⬡
+       ╱ ╲ ╱ ╲      M i l i z O S
+      ⬡───⬡───⬡     SOC · Blue Team · Network Engineering
+       ╲ ╱ ╲ ╱
+        ⬡───⬡"""))
+    print(f"""
+  {osname()}
+  {n} ferramentas catalogadas · checkpoints com rollback · modo incidente · treino de detecção
+
+  Criado por {ac(AUTHOR)}
+  {AUTHOR_URL}
+""")
+
+
+def osname():
+    try:
+        for l in open("/etc/os-release"):
+            if l.startswith("PRETTY_NAME="):
+                return l.split("=", 1)[1].strip().strip('"')
+    except OSError:
+        pass
+    return "MilizOS"
+
+
+def banner():
+    print(ac("  ⬡ MilizOS") + dim(f"  ·  {osname()}  ·  SOC · Blue Team · Network"))
+
+
+def cmd_help(_a):
+    banner()
+    print(f"""
+  {ac('nos status')}              postura de segurança desta máquina
+  {ac('nos tools')} [categoria]   catálogo de ferramentas instaladas
+  {ac('nos ifaces')}              interfaces, endereços, enlace e vizinhos
+  {ac('nos capture')} IFACE [filtro BPF]   captura em anel (pcap rotativo)
+  {ac('nos triage')}              coleta de triagem do host para resposta a incidentes
+  {ac('nos profile')} [soc|neteng|sensor]  mostra ou troca o perfil de serviços
+  {ac('nos sensor')} [status|setup IFACE|update]   sensor IDS (Suricata)
+  {ac('nos checkpoint')} [list|create|rollback|diff|delete|rescue]   checkpoints e rollback do sistema
+  {ac('nos data')} [list|snap|restore]   linha do tempo de /home: recupere arquivos de horas ou dias atrás
+
+  {dim('Resposta a incidentes e engenharia de detecção')}
+  {ac('nos incident')} [start|status|release]   isola a máquina e preserva evidências com cadeia de custódia
+  {ac('nos drill')} [list|run]      ataca o próprio sensor com tráfego sintético e mede a cobertura (MITRE ATT&CK)
+  {ac('nos attest')} [seal]         atesta que o sistema ainda é o que foi instalado
+  {ac('nos forge')} --iso ISO       gera uma ISO que instala sozinha com a sua configuração
+  {ac('nos box')} [kali|debian|arch|ubuntu|parrot|alpine]   outra distribuição integrada, sem tocar na base
+  {ac('nos about')}                 sobre o MilizOS
+
+  {dim('Criado por ' + AUTHOR + ' · ' + AUTHOR_URL)}
+""")
+
+
+def cmd_tools(a):
+    cat = catalog()
+    if a.category and a.category not in cat:      # busca por nome ou descricao
+        q = a.category.lower()
+        found = [(k, t) for k, v in cat.items() for t in v["tools"] if q in t["cmd"].lower() or q in t["desc"].lower()]
+        if not found:
+            sys.exit(f"nada encontrado para '{a.category}' (categorias: {', '.join(cat)})")
+        for k, t in found:
+            print(f"  {ok('●') if shutil.which(t['cmd']) else bad('○')} {t['cmd']:<22} {t['desc']}" + dim(f"  [{k}]"))
+        return
+    if not a.category and not a.all:
+        print(ac("▍Catálogo de ferramentas") + dim("   nos tools CATEGORIA · nos tools TERMO · nos tools --all"))
+        for k, v in cat.items():
+            print(f"  {k:<12} {len(v['tools']):>4}  {v['label']}")
+        print(dim(f"  total: {sum(len(v['tools']) for v in cat.values())} ferramentas"))
+        return
+    keys = [a.category] if a.category else list(cat)
+    for k in keys:
+        if k not in cat:
+            sys.exit(f"categoria desconhecida: {k} (use: {', '.join(cat)})")
+        print("\n" + ac(f"▍{cat[k]['label']}") + dim(f"  [{k}]"))
+        for t in cat[k]["tools"]:
+            have = shutil.which(t["cmd"]) is not None
+            mark = ok("●") if have else bad("○")
+            print(f"  {mark} {t['cmd']:<22} {t['desc'] if have else dim(t['desc'] + ' (não instalado)')}")
+    print()
+
+
+def unit(name):
+    return sh(["systemctl", "is-active", name]) or "inactive"
+
+
+def cmd_status(_a):
+    banner()
+    rows = []
+    se = sh(["getenforce"])
+    rows.append(("SELinux", se, se == "Enforcing"))
+    fw = unit("firewalld")
+    zone = sh(["firewall-cmd", "--get-default-zone"]) if fw == "active" else "-"
+    rows.append(("Firewall", f"{fw} (zona {zone})", fw == "active"))
+    for label, u, want in (("Auditoria (auditd)", "auditd", True), ("Sincronismo (chronyd)", "chronyd", True),
+                           ("IDS (suricata)", "suricata", None), ("SSH (sshd)", "sshd", None),
+                           ("Painel web (cockpit)", "cockpit.socket", None), ("USBGuard", "usbguard", None)):
+        s = unit(u)
+        rows.append((label, s, (s == "active") if want else None))
+    enc = "crypt" in sh("lsblk -rno TYPE")
+    rows.append(("Disco criptografado", "sim (LUKS)" if enc else "não", enc))
+    sb = sh("mokutil --sb-state 2>/dev/null") or "indisponível"
+    rows.append(("Secure Boot", sb.splitlines()[0], "enabled" in sb))
+    prof = "-"
+    if os.path.exists("/etc/milizos-profile"):
+        prof = open("/etc/milizos-profile").read().strip()
+    rows.append(("Perfil", prof, None))
+    print()
+    for label, val, good in rows:
+        m = dim("·") if good is None else (ok("✔") if good else warn("✘"))
+        print(f"  {m} {label:<24} {val}")
+    print("\n" + ac("▍Portas em escuta"))
+    out = sh("ss -H -tuln")
+    seen = set()
+    for l in out.splitlines():
+        f = l.split()
+        if len(f) >= 5 and (f[0], f[4]) not in seen:
+            seen.add((f[0], f[4]))
+            ext = not f[4].startswith(("127.", "[::1]"))
+            print(f"  {warn('▸') if ext else dim('▸')} {f[0]:<4} {f[4]}")
+    if not seen:
+        print(dim("  nenhuma"))
+    failed = sh("systemctl --failed --no-legend --plain")
+    if failed:
+        print("\n" + warn("▍Unidades com falha"))
+        for l in failed.splitlines():
+            print("  " + l.split()[0])
+    print()
+
+
+def cmd_ifaces(_a):
+    print(ac("▍Interfaces"))
+    print(sh("ip -br -c addr" if C else "ip -br addr"))
+    print("\n" + ac("▍Enlace"))
+    for n in sorted(os.listdir("/sys/class/net")):
+        if n == "lo":
+            continue
+        def rd(f):
+            try:
+                return open(f"/sys/class/net/{n}/{f}").read().strip()
+            except OSError:
+                return "-"
+        sp = rd("speed")
+        print(f"  {n:<14} {rd('operstate'):<8} {rd('address')}  mtu {rd('mtu')}  {sp + ' Mb/s' if sp not in ('-', '-1') else ''}")
+    print("\n" + ac("▍Rotas"))
+    print(sh("ip route"))
+    if shutil.which("lldpcli") and unit("lldpd") == "active":
+        print("\n" + ac("▍Vizinhos LLDP"))
+        print(sh("lldpcli show neighbors summary"))
+    print()
+
+
+def sudo(cmd):
+    return cmd if os.geteuid() == 0 else ["sudo"] + cmd
+
+
+def cmd_capture(a):
+    if not os.path.isdir(f"/sys/class/net/{a.iface}"):
+        sys.exit(f"interface inexistente: {a.iface}")
+    d = os.path.abspath(a.dir)
+    os.makedirs(d, exist_ok=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    base = os.path.join(d, f"{a.iface}-{stamp}.pcap")
+    cmd = sudo(["tcpdump", "-i", a.iface, "-n", "-s", str(a.snaplen), "-C", str(a.size), "-W", str(a.files),
+                "-Z", os.environ.get("SUDO_USER") or getpass.getuser(), "-w", base]) + a.filter
+    print(ac("▍Captura em anel") + f"  {a.files} × {a.size} MB em {base}*  (Ctrl+C encerra)")
+    try:
+        sys.exit(subprocess.call(cmd))
+    except KeyboardInterrupt:
+        pass
+
+
+TRIAGE = [
+    ("sistema", "date -Is; uname -a; cat /etc/os-release; uptime; hostnamectl"),
+    ("usuarios-logados", "who -a; echo; last -n 50 -F 2>/dev/null; echo; lastb -n 50 -F 2>/dev/null"),
+    ("processos", "ps -eo pid,ppid,user,lstart,stat,%cpu,%mem,cmd --forest"),
+    ("rede-escuta", "ss -tulpan"),
+    ("rede-enderecos", "ip -d addr; echo; ip route show table all; echo; ip neigh"),
+    ("firewall", "nft list ruleset 2>&1; echo; firewall-cmd --list-all-zones 2>&1"),
+    ("dns", "cat /etc/resolv.conf; resolvectl status 2>&1; cat /etc/hosts"),
+    ("servicos", "systemctl list-units --type=service --all --no-pager; echo; systemctl --failed --no-pager"),
+    ("timers-cron", "systemctl list-timers --all --no-pager; for f in /etc/crontab /etc/cron.*/* /var/spool/cron/*; do echo \"== $f\"; cat \"$f\" 2>/dev/null; done"),
+    ("modulos", "lsmod"),
+    ("contas", "getent passwd; echo; getent group; echo; awk -F: '$3==0' /etc/passwd"),
+    ("sudoers", "cat /etc/sudoers /etc/sudoers.d/* 2>/dev/null"),
+    ("ssh-chaves", "for h in /root /home/*; do echo \"== $h\"; cat $h/.ssh/authorized_keys 2>/dev/null; done"),
+    ("etc-recentes", "find /etc -xdev -type f -mtime -7 -printf '%TY-%Tm-%Td %TH:%TM %u %m %p\\n' 2>/dev/null | sort"),
+    ("suid", "find / -xdev -perm /6000 -type f -printf '%m %u %g %p\\n' 2>/dev/null"),
+    ("exe-apagados", "ls -l /proc/[0-9]*/exe 2>/dev/null | grep '(deleted)'"),
+    ("selinux", "sestatus; ausearch -m avc -ts today 2>&1 | tail -n 200"),
+    ("auditoria-logins", "aureport -au --summary 2>&1; aureport -l -ts this-week 2>&1 | tail -n 200"),
+    ("journal-alertas", "journalctl -b -p warning --no-pager | tail -n 1000"),
+    ("pacotes-recentes", "rpm -qa --last | head -n 100"),
+    ("integridade-rpm", "rpm -Va --nomtime 2>/dev/null | grep -v '^\\.\\{8\\}' | head -n 500"),
+    ("montagens", "findmnt -A; echo; lsblk -f; echo; df -h"),
+]
+
+
+def cmd_triage(a):
+    if os.geteuid() != 0:
+        print(warn("Sem root a coleta fica parcial. Recomendado: sudo nos triage"))
+    host = os.uname().nodename
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    name = f"triage-{host}-{stamp}"
+    work = os.path.join(os.path.abspath(a.dir), name)
+    os.makedirs(work, mode=0o700)
+    for i, (n, c) in enumerate(TRIAGE, 1):
+        print(f"\r  [{i:2}/{len(TRIAGE)}] {n:<24}", end="", flush=True)
+        if a.quick and n in ("suid", "integridade-rpm"):
+            continue
+        with open(os.path.join(work, n + ".txt"), "w") as f:
+            f.write(f"# {c}\n")
+            f.write(sh(c, timeout=300) + "\n")
+    tar = work + ".tar.gz"
+    with tarfile.open(tar, "w:gz") as t:
+        t.add(work, arcname=name)
+    shutil.rmtree(work)
+    os.chmod(tar, 0o600)
+    digest = sh(["sha256sum", tar]).split()[0]
+    with open(tar + ".sha256", "w") as f:
+        f.write(f"{digest}  {os.path.basename(tar)}\n")
+    print(f"\r  {ok('✔')} coleta concluída" + " " * 30)
+    print(f"  arquivo: {tar}\n  sha256:  {digest}")
+
+
+def cmd_profile(a):
+    sys.path.insert(0, "/usr/lib/milizos-installer")
+    from engine import PROFILES
+    cur = open("/etc/milizos-profile").read().strip() if os.path.exists("/etc/milizos-profile") else None
+    if not a.name:
+        for k, p in PROFILES.items():
+            print(f"  {ok('●') if k == cur else dim('○')} {ac(k):<8}  {p['label']}\n      {dim(p['desc'])}")
+        return
+    if a.name not in PROFILES:
+        sys.exit(f"perfil desconhecido: {a.name}")
+    if os.geteuid() != 0:
+        os.execvp("sudo", ["sudo", sys.argv[0], "profile", a.name])
+    p = PROFILES[a.name]
+    for s in p["enable"]:
+        print(f"  + {s}: " + (sh(["systemctl", "enable", "--now", s]).splitlines() or ["ok"])[-1])
+    for s in p["disable"]:
+        print(f"  - {s}: " + (sh(["systemctl", "disable", "--now", s]).splitlines() or ["ok"])[-1])
+    sh(["systemctl", "set-default", p["target"]])
+    with open("/etc/milizos-profile", "w") as f:
+        f.write(a.name + "\n")
+    print(f"  {ok('✔')} perfil ativo: {p['label']} (alvo de boot: {p['target']})")
+
+
+def cmd_sensor(a):
+    act = a.action or "status"
+    if act == "status":
+        iface = open("/etc/milizos/sensor-iface").read().strip() if os.path.exists("/etc/milizos/sensor-iface") else "-"
+        st = unit("suricata")
+        rules = sh("grep -c '^alert' /var/lib/suricata/rules/suricata.rules 2>/dev/null") or "0"
+        print(ac("▍Sensor de rede"))
+        print(f"  {ok('✔') if st == 'active' else warn('✘')} Suricata                 {st}")
+        print(f"  {dim('·')} Interface de captura     {iface}")
+        print(f"  {dim('·')} Regras carregadas        {rules}")
+        print(f"  {dim('·')} Alertas                  /var/log/suricata/fast.log · eve.json")
+        print(dim("  nos sensor setup IFACE   troca a interface   ·   nos sensor update   baixa as regras ET Open"))
+        return
+    if os.geteuid() != 0:
+        os.execvp("sudo", ["sudo", sys.argv[0], "sensor", act] + a.args)
+    if act == "setup":
+        print("  " + sh(["/usr/libexec/milizos/sensor-setup"] + a.args[:1]))
+        print("  " + (sh(["systemctl", "enable", "--now", "milizos-sensor-setup", "suricata"]).splitlines() or ["ok"])[-1])
+        sh(["systemctl", "restart", "suricata"])
+        print(f"  Suricata: {unit('suricata')}")
+    elif act == "update":
+        print(ac("▍Baixando regras (suricata-update)"))
+        subprocess.call(["suricata-update", "--no-test"])
+        sh(["systemctl", "try-restart", "suricata"])
+        print(f"  Suricata: {unit('suricata')}")
+    else:
+        sys.exit("ações: status, setup [IFACE], update")
+
+
+def cmd_checkpoint(a):
+    sys.path.insert(0, "/usr/lib/milizos")
+    import checkpoint as cp
+    act = a.action or "list"
+    try:
+        if act == "auto":  # chamado pelo dnf antes de cada transacao; nunca pode falhar
+            try:
+                if os.geteuid() == 0 and cp.supported() and not os.environ.get("NOS_NO_CHECKPOINT"):
+                    try:
+                        par = open(f"/proc/{os.getppid()}/cmdline").read().replace("\0", " ").strip()
+                    except OSError:
+                        par = "dnf"
+                    par = " ".join(os.path.basename(w) if i == 0 else w for i, w in enumerate(par.split()))
+                    n = cp.create(f"antes de: {par[:60]}", "auto")
+                    print(f"MilizOS: checkpoint #{n} criado (rollback: nos checkpoint rollback {n})")
+            except Exception as e:  # noqa
+                print(f"MilizOS: checkpoint automático não criado: {e}")
+            return
+        if act == "sync-boot":
+            cp.sync_boot(); return
+        if act == "rescue":
+            if os.geteuid() != 0:
+                os.execvp("sudo", ["sudo", sys.argv[0]] + sys.argv[1:])
+            if not os.path.exists("/run/initramfs/live"):
+                sys.exit("o resgate roda a partir da mídia live do MilizOS; no sistema instalado use: nos checkpoint rollback ID")
+            vols = [(d, its) for d, its in cp.rescue_find() if its]
+            if not vols:
+                sys.exit("nenhuma instalação do MilizOS com checkpoints foi encontrada nos discos")
+            dev, its = vols[0]
+            print(ac(f"▍Resgate: checkpoints em {dev}"))
+            for i in its:
+                print(f"  #{i['id']:<3} {i['time']}  {i['desc']}")
+            n = int(a.args[0].lstrip("#")) if a.args else None
+            if n is None:
+                r = input(f"  Restaurar qual checkpoint? [{its[-1]['id']}] ").strip().lstrip("#")
+                n = int(r) if r.isdigit() else its[-1]["id"]
+            cp.rescue(dev, n, log=lambda m: print(f"  {ok('✔')} {m}"))
+            print(f"  {ok('✔')} pronto: remova a mídia e reinicie.")
+            return
+        if act == "finalize":
+            cp.finalize(); return
+        if act == "list":
+            if not cp.supported():
+                print(dim("  Checkpoints indisponíveis: exigem instalação em btrfs pelo instalador do MilizOS."))
+                return
+            if os.geteuid() != 0:
+                os.execvp("sudo", ["sudo", sys.argv[0], "checkpoint", "list"])
+            with cp.Top():
+                its = cp.items()
+                boot = {i["id"]: cp.bootable(i) for i in its}
+            print(ac("▍Checkpoints do sistema") + dim("   (⏻ = disponível no menu de boot)"))
+            for i in its:
+                kind = {"install": ac("instalação"), "manual": ok("manual"), "auto": dim("automático")}.get(i["kind"], i["kind"])
+                print(f"  {'⏻' if boot[i['id']] else ' '} #{i['id']:<3} {i['time']}  {kind:<22} {i['desc']}"
+                      + dim(f"  [{i.get('kernel') or 'sem kernel salvo'}]"))
+            if not its:
+                print(dim("  nenhum"))
+            if cp.pending():
+                print(warn("  Rollback aplicado: reinicie para entrar no sistema revertido."))
+            return
+        if act == "create":
+            n = cp.create(" ".join(a.args) or "checkpoint manual", a.kind)
+            print(f"  {ok('✔')} checkpoint #{n} criado")
+        elif act in ("rollback", "delete", "diff"):
+            if not a.args or not a.args[0].lstrip("#").isdigit():
+                sys.exit(f"uso: nos checkpoint {act} ID" + (" [arquivo]" if act == "diff" else ""))
+            n = int(a.args[0].lstrip("#"))
+            if act == "delete":
+                cp.delete(n); print(f"  {ok('✔')} checkpoint #{n} removido")
+            elif act == "rollback":
+                if not a.yes:
+                    r = input(f"  Reverter o sistema para o checkpoint #{n}? /home e /var/log são preservados. [s/N] ")
+                    if r.strip().lower() not in ("s", "sim", "y", "yes"):
+                        return
+                s = cp.rollback(n)
+                print(f"  {ok('✔')} sistema revertido para #{n}; o estado atual ficou salvo como #{s}.")
+                print(f"  {warn('Reinicie para concluir:')} systemctl reboot")
+            else:
+                r = cp.diff(n, a.args[1] if len(a.args) > 1 else None)
+                if "text" in r:
+                    print(r["text"] or dim("  sem diferenças")); return
+                names = (("added", ok("+"), "adicionados"), ("removed", bad("-"), "removidos"), ("changed", warn("~"), "alterados"))
+                for sec, title in (("packages", "Pacotes"), ("etc", "Arquivos em /etc")):
+                    tot = sum(len(r[sec][k]) for k, _m, _t in names)
+                    print(ac(f"▍{title} desde o checkpoint #{n}") + dim(f"  ({tot} mudanças)"))
+                    for k, m, _t in names:
+                        for x in r[sec][k]:
+                            print(f"  {m} {x}")
+                print(dim(f"  detalhe de um arquivo: nos checkpoint diff {n} /etc/arquivo"))
+        else:
+            sys.exit("ações: list, create [descrição], rollback ID, diff ID [arquivo], delete ID, rescue [ID] (pela mídia live)")
+    except cp.Error as e:
+        sys.exit(f"erro: {e}")
+
+
+def cmd_data(a):
+    sys.path.insert(0, "/usr/lib/milizos")
+    import checkpoint as cp
+    act = a.action or "list"
+    if os.geteuid() != 0 and cp.supported():
+        os.execvp("sudo", ["sudo", sys.argv[0]] + sys.argv[1:])
+    try:
+        if act == "auto":       # chamado pelo timer; silencioso onde nao ha suporte
+            if cp.supported() and not cp.pending():
+                cp.data_snap()
+            return
+        if not cp.supported():
+            print(dim("  Linha do tempo dos dados indisponível: exige instalação em btrfs pelo instalador do MilizOS."))
+            return
+        if act == "list":
+            with cp.Top():
+                its = cp.data_items()
+            print(ac("▍Linha do tempo de /home") + dim("   automática: de hora em hora (24 h) e diária (14 dias)"))
+            for n in its:
+                print(f"  {n}   {n[6:8]}/{n[4:6]}/{n[:4]} {n[9:11]}:{n[11:13]}")
+            print(dim("  nenhum snapshot ainda" if not its else "  restaurar: nos data restore CAMINHO [--at ontem|3h|2d|AAAA-MM-DD|ID] [--in-place]"))
+        elif act == "snap":
+            print(f"  {ok('✔')} snapshot de /home criado: {cp.data_snap(prune=False)}")
+        elif act == "restore":
+            if not a.args:
+                sys.exit("uso: nos data restore CAMINHO [--at ontem|3h|2d|AAAA-MM-DD|ID] [--in-place]")
+            sid, dst = cp.data_restore(a.args[0], a.at, a.in_place)
+            print(f"  {ok('✔')} restaurado do snapshot {sid} em {dst}")
+        else:
+            sys.exit("ações: list, snap, restore CAMINHO [--at QUANDO] [--in-place]")
+    except cp.Error as e:
+        sys.exit(f"erro: {e}")
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="nos", add_help=True, description="Central de comando do MilizOS")
+    sp = ap.add_subparsers(dest="cmd")
+    sp.add_parser("help")
+    sp.add_parser("status")
+    sp.add_parser("ifaces")
+    t = sp.add_parser("tools"); t.add_argument("category", nargs="?"); t.add_argument("-a", "--all", action="store_true")
+    sp.add_parser("about")
+    da = sp.add_parser("data"); da.add_argument("action", nargs="?"); da.add_argument("args", nargs="*")
+    da.add_argument("--at"); da.add_argument("--in-place", action="store_true")
+    c = sp.add_parser("capture")
+    c.add_argument("iface"); c.add_argument("filter", nargs="*")
+    c.add_argument("-d", "--dir", default=os.path.expanduser("~/capturas"))
+    c.add_argument("-C", "--size", type=int, default=100, help="MB por arquivo")
+    c.add_argument("-W", "--files", type=int, default=10, help="arquivos no anel")
+    c.add_argument("-s", "--snaplen", type=int, default=0)
+    tr = sp.add_parser("triage")
+    tr.add_argument("-d", "--dir", default="."); tr.add_argument("-q", "--quick", action="store_true")
+    pr = sp.add_parser("profile"); pr.add_argument("name", nargs="?")
+    se = sp.add_parser("sensor"); se.add_argument("action", nargs="?"); se.add_argument("args", nargs="*")
+    for name in ("checkpoint", "cp"):
+        ck = sp.add_parser(name)
+        ck.add_argument("action", nargs="?"); ck.add_argument("args", nargs="*")
+        ck.add_argument("-y", "--yes", action="store_true"); ck.add_argument("--kind", default="manual")
+    mods = {"incident": "incident", "drill": "drill", "attest": "attest", "forge": "forge", "box": "box"}
+    if len(sys.argv) > 1 and sys.argv[1] in mods:     # modulos com a propria linha de comando
+        sys.path.insert(0, "/usr/lib/milizos")
+        return __import__(mods[sys.argv[1]]).main(sys.argv[2:])
+    a = ap.parse_args()
+    {"about": cmd_about, "data": cmd_data, "status": cmd_status, "ifaces": cmd_ifaces, "tools": cmd_tools, "capture": cmd_capture,
+     "triage": cmd_triage, "profile": cmd_profile, "sensor": cmd_sensor, "checkpoint": cmd_checkpoint, "cp": cmd_checkpoint}.get(a.cmd, cmd_help)(a)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except BrokenPipeError:
+        pass

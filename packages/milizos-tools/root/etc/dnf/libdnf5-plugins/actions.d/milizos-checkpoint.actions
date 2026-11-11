@@ -1,0 +1,2 @@
+# MilizOS: cria um checkpoint do sistema antes de cada transacao do dnf
+pre_transaction::::/usr/bin/nos checkpoint auto

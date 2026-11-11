@@ -1,0 +1,10 @@
+# MilizOS - regras de referencia do treino de deteccao (nos drill).
+# Usadas quando o sensor ainda nao tem um conjunto de regras, ou com: nos drill run --baseline
+alert tcp any any -> $HOME_NET any (msg:"NOS DRILL varredura de portas TCP (SYN)"; flags:S,12; threshold:type both, track by_src, count 30, seconds 10; classtype:attempted-recon; sid:9900001; rev:1; metadata:mitre T1046;)
+alert http any any -> $HOME_NET any (msg:"NOS DRILL ferramenta de injecao SQL (sqlmap)"; flow:established,to_server; http.user_agent; content:"sqlmap"; nocase; classtype:web-application-attack; sid:9900002; rev:1; metadata:mitre T1190;)
+alert http any any -> $HOME_NET any (msg:"NOS DRILL leitura de /etc/passwd via web"; flow:established,to_server; http.uri; content:"/etc/passwd"; classtype:web-application-attack; sid:9900003; rev:1; metadata:mitre T1083;)
+alert tcp $HOME_NET any -> any any (msg:"NOS DRILL resposta de shell como root (id)"; flow:established; content:"uid=0|28|root|29|"; classtype:successful-admin; sid:9900004; rev:1; metadata:mitre T1059;)
+alert dns any any -> any any (msg:"NOS DRILL possivel tunel DNS (rotulo longo)"; dns.query; pcre:"/^[a-z0-9]{40,}\./"; threshold:type limit, track by_src, count 1, seconds 60; classtype:bad-unknown; sid:9900005; rev:1; metadata:mitre T1071.004;)
+alert tcp any any -> $HOME_NET 22 (msg:"NOS DRILL forca bruta de SSH"; flags:S,12; threshold:type both, track by_src, count 10, seconds 60; classtype:attempted-admin; sid:9900006; rev:1; metadata:mitre T1110;)
+alert http any any -> $HOME_NET any (msg:"NOS DRILL arquivo de teste de malware (EICAR) recebido"; flow:established,to_client; file.data; content:"EICAR-STANDARD-ANTIVIRUS-TEST-FILE"; classtype:trojan-activity; sid:9900007; rev:1; metadata:mitre T1105;)
+alert icmp any any -> any any (msg:"NOS DRILL ICMP com carga anormal (possivel tunel)"; itype:8; dsize:>800; threshold:type limit, track by_src, count 1, seconds 60; classtype:bad-unknown; sid:9900008; rev:1; metadata:mitre T1095;)

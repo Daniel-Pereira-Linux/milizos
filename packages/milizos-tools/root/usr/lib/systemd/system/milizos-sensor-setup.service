@@ -1,0 +1,13 @@
+[Unit]
+Description=MilizOS - preparacao do sensor (interface e regras do Suricata)
+Before=suricata.service
+After=network.target NetworkManager.service
+ConditionPathExists=/usr/sbin/suricata
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/milizos/sensor-setup
+
+[Install]
+WantedBy=multi-user.target

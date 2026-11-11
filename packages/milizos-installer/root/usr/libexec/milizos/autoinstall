@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+# Instalacao desassistida: milizos.autoinstall[=poweroff|reboot] na linha do kernel.
+# A configuracao (JSON) vem da midia (/milizos/autoinstall.json) ou do fw_cfg do QEMU.
+mode=$(sed -n 's/.*milizos\.autoinstall=\([^ ]*\).*/\1/p' /proc/cmdline)
+cfg=/run/milizos-autoinstall.json
+modprobe qemu_fw_cfg 2>/dev/null
+for src in /sys/firmware/qemu_fw_cfg/by_name/opt/milizos/autoinstall/raw \
+           /run/initramfs/live/milizos/autoinstall.json; do
+    if [ -r "$src" ]; then (umask 077; cat "$src" > $cfg); break; fi
+done
+if [ ! -s $cfg ]; then echo "MILIZOS-AUTOINSTALL: configuracao nao encontrada"; exit 1; fi
+echo "MILIZOS-AUTOINSTALL: iniciando"
+if /usr/bin/python3 /usr/lib/milizos-installer/engine.py --auto $cfg; then
+    echo "MILIZOS-AUTOINSTALL: OK"; rc=0
+else
+    echo "MILIZOS-AUTOINSTALL: FALHOU"; tail -n 40 /var/log/milizos-install.log; rc=1
+fi
+case "$mode" in
+    poweroff) systemctl --no-block poweroff ;;
+    reboot) [ $rc = 0 ] && systemctl --no-block reboot ;;
+esac
+exit $rc

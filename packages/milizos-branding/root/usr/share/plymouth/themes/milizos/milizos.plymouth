@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=MilizOS
+Description=Globo de rede 3D com a logo do MilizOS
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/milizos
+ScriptFile=/usr/share/plymouth/themes/milizos/milizos.script

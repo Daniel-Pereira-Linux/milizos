@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+  <wallpaper deleted="false"><name>MilizOS Sentinel</name>
+    <filename>/usr/share/backgrounds/milizos/default.jpg</filename>
+    <options>zoom</options><shade_type>solid</shade_type><pcolor>#070B16</pcolor><scolor>#070B16</scolor></wallpaper>
+  <wallpaper deleted="false"><name>MilizOS Mesh</name>
+    <filename>/usr/share/backgrounds/milizos/mesh.jpg</filename>
+    <options>zoom</options><shade_type>solid</shade_type><pcolor>#070B16</pcolor><scolor>#070B16</scolor></wallpaper>
+</wallpapers>

@@ -1,0 +1,28 @@
+# Catalogo estendido: gerado de build/tools-extra.list, filtrado pelo que existe no Fedora 44
+ArpON ShellCheck SoapySDR adcli afflib age aircrack-ng android-tools ansible apg argus argus-clients aria2 
+atop audispd-plugins autossh bcc-tools binutils bird bleachbit bluez-hcidump bluez-tools bpftrace bubblewrap 
+buildah bvi bwm-ng cabextract capstone ccze certbot chntpw chrony cifs-utils clevis cmospwd conman 
+conntrack-tools corkscrew cowpatty cpio cryfs curl cutter-re darkstat dc3dd dcfldd dhcpdump dhex disktype 
+dislocker distrobox dnsenum dnsmap dnsperf dnstop dnstracer dsniff dump1090 easy-rsa ecryptfs-utils efitools 
+elfutils etherape ettercap exabgp extundelete fakeroot fapolicyd fatcat ffuf fido2-tools file fio firejail 
+firewalk flashrom flawfinder flent freeipmi freeradius-utils freerdp fwupd gdb ghex gitleaks glances gns3-gui 
+gns3-server gnutls-utils gobuster gocryptfs google-authenticator gopass govulncheck gpart grpcurl grype 
+hackrf hadolint hashcat haveged hcxtools hexyl hivex hostapd hping3 httpd-tools httping httprobe httpry 
+httptunnel hwinfo iaito ifstat imhex innoextract inxi iodine iotop-c iperf ipmitool iptstate ipv6calc 
+ipv6toolkit iw jq kalibrate-rtl keepalived kismet knot-utils krb5-workstation ladvd ldns-utils libesedb 
+libewf libfido2 libnfc libpwquality libvirt linuxptp lshw-gui lynx lz4 lzip mac-robber macchanger massdns 
+mat2 mediainfo medusa mininet minisign miniupnpc monit mosh msitools msmtp multitail nasm ncftp ncrack ndisc6 
+net-tools netmask netperf netplug netsniff-ng nfdump nfs-utils nicstat nload nmon node-exporter nss-tools 
+ntfs2btrfs nuclei nuttcp nwipe onesixtyone openconnect openldap-clients opensc openscap-utils openssl-pkcs11 
+ophcrack osslsigncode p0f packit pads pam-u2f pam_yubico pass patchelf pdfcrack perf pesign pimd pixiewps 
+pngcheck policycoreutils-devel powertop pptp privoxy proxmark3 proxychains-ng proxytunnel psad putty pwgen 
+python3-ROPGadget python3-beautifulsoup4 python3-capstone python3-httpx python3-impacket python3-jinja2 
+python3-oletools python3-pefile python3-pwntools python3-pysnmp python3-requests python3-unicorn python3-yara 
+qemu-kvm qperf radvd rancid rdesktop realmd reaver rizin rng-tools rrdtool rtl-sdr samba-client samdump2 
+sbsigntools scanssh scrub sec sequoia-sq ser2net setroubleshoot setroubleshoot-server siege sipp skopeo 
+sleuthkit-libs slurm smokeping sngrep snmpcheck softhsm sox spectre-meltdown-checker speedtest-cli 
+squashfs-tools-ng sshpass sshuttle ssldump sslscan sslsplit ssmtp sssd-tools steghide stress-ng stunnel 
+subfinder swaks swatch sysstat tang tayga tcpick tcptrack teamd testssl thc-ipv6 tigervnc tor torsocks trivy 
+tuned ubertooth ubridge udica unbound unhide unicorn unrar unshield uperf upx virt-install virt-manager vpnc 
+wafw00f wavemon wget2 whatweb wipe wireless-regdb wol wpa_supplicant-gui x2goclient xca xmount xxd yamllint 
+ykpers yubico-piv-tool yubikey-manager zerofree zstd zulucrypt 
