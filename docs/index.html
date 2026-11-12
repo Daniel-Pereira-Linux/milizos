@@ -3,256 +3,652 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MilizOS — a distribuição Linux para SOC, Blue Team e Redes</title>
-<meta name="description" content="MilizOS: distribuição Linux baseada em Fedora para times de SOC, Blue Team e engenharia de redes. Rollback do sistema, modo incidente, treino de detecção e centenas de ferramentas.">
+<title>MilizOS: o Linux em que tudo é commit</title>
+<meta name="description" content="MilizOS é uma distribuição Linux baseada em Fedora em que a máquina inteira tem histórico: sistema, arquivos pessoais e logs. Volte um arquivo, uma pasta ou o sistema todo a qualquer ponto. Para SOC, Blue Team e redes.">
+<meta name="theme-color" content="#060913">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MilizOS: o Linux em que tudo é commit">
+<meta property="og:description" content="A máquina inteira tem histórico. Volte um arquivo, uma pasta ou o sistema todo a qualquer ponto, e voltar também vira história.">
+<meta property="og:url" content="https://daniel-pereira-linux.github.io/milizos/">
+<meta property="og:image" content="https://daniel-pereira-linux.github.io/milizos/assets/heloisa-linha-do-tempo.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/logo.svg">
+<link rel="preload" href="assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-:root{--bg:#070B16;--bg2:#0C1324;--card:#101A30;--line:#1C2A4A;--tx:#E6EDF7;--mut:#8FA0BD;--ac:#00F0C8;--ac2:#2D7FF9}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
-code,pre,.mono{font-family:ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace}
-.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
-nav{position:sticky;top:0;z-index:5;background:rgba(7,11,22,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;gap:22px;height:58px}
-nav img{width:30px;height:30px}nav b{font-size:17px;letter-spacing:.3px}
-nav .links{margin-left:auto;display:flex;gap:20px;font-size:14px}nav .links a{color:var(--mut)}nav .links a:hover{color:var(--tx);text-decoration:none}
-header{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
-#mesh{position:absolute;inset:0;width:100%;height:100%;opacity:.75}
-.hero{position:relative;display:grid;grid-template-columns:1.25fr .75fr;gap:30px;align-items:center;padding:84px 0 92px}
-.tag{display:inline-block;font-size:12.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ac);border:1px solid rgba(0,240,200,.35);border-radius:99px;padding:4px 12px;margin-bottom:18px}
-h1{font-size:clamp(34px,5.6vw,60px);line-height:1.06;margin:0 0 18px;letter-spacing:-1.2px;text-wrap:balance}
-h1 span{background:linear-gradient(100deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.lead{font-size:18.5px;color:var(--mut);max-width:60ch;margin:0 0 28px}
+@font-face{font-family:"JetBrains Mono";src:url(assets/fonts/jetbrains-mono-latin.woff2) format("woff2");font-weight:100 800;font-style:normal;font-display:swap}
+:root{
+  --bg:#060913;--bg2:#0A1020;--card:#0E1730;--card2:#121D3B;--line:#1A2747;--line2:#27396A;
+  --tx:#E8EEF9;--mut:#93A3C0;--dim:#5F7093;
+  --ac:#00F0C8;--ac2:#2D7FF9;--amber:#FFB454;--red:#FF6B6B;--green:#3DDC84;
+  --mono:"JetBrains Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",sans-serif;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;height:auto}
+a{color:var(--ac);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
+code,pre,kbd{font-family:var(--mono)}
+:not(pre)>code{font-size:.88em;background:#081023;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:#BFEFE6;white-space:nowrap}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:var(--mono);text-wrap:balance;word-spacing:-.22em}
+h2{font-size:clamp(24px,3.2vw,36px);line-height:1.15;letter-spacing:-.035em;margin:0 0 12px;font-weight:750}
+h3{font-size:17px;letter-spacing:-.02em;margin:0 0 6px;font-weight:700}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ac);margin-bottom:16px}
+.eyebrow:before{content:"";width:9px;height:9px;border-radius:50%;border:2px solid var(--ac)}
+.sub{color:var(--mut);max-width:68ch;margin:0 0 34px;font-size:17px}
+section{padding:88px 0}
+.alt{background:var(--bg2);border-block:1px solid var(--line)}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;background:rgba(6,9,19,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:12px;height:60px}
+nav .brand{display:flex;align-items:center;gap:10px;color:var(--tx);font:750 17px var(--mono);letter-spacing:-.03em}
+nav .brand:hover{text-decoration:none}
+nav .brand img{width:30px;height:30px}
+nav .brand span{font:600 11px var(--mono);color:var(--ac);border:1px solid rgba(0,240,200,.35);border-radius:99px;padding:3px 8px;letter-spacing:0}
+nav .links{margin-left:auto;display:flex;align-items:center;gap:22px;font-size:14.5px}
+nav .links a{color:var(--mut)}
+nav .links a:hover{color:var(--tx);text-decoration:none}
+nav .links a.cta{color:#04121a;background:var(--ac);font-weight:700;padding:7px 14px;border-radius:9px}
+nav .links a.cta:hover{color:#04121a;filter:brightness(1.08)}
+
+/* botões */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:11px;font:650 15.5px var(--sans);border:1px solid var(--line2);color:var(--tx);background:var(--card);cursor:pointer;transition:border-color .15s,transform .15s}
+.btn:hover{text-decoration:none;border-color:var(--ac);transform:translateY(-1px)}
+.btn.pri{background:linear-gradient(100deg,var(--ac),#19c9e6);color:#04121a;border-color:transparent}
+.btn small{font:500 12.5px var(--mono);opacity:.75}
+
+/* herói */
+header{position:relative;border-bottom:1px solid var(--line);overflow:hidden;
+  background:
+   radial-gradient(900px 480px at 82% 8%,rgba(45,127,249,.20),transparent 62%),
+   radial-gradient(700px 420px at 4% 96%,rgba(0,240,200,.11),transparent 60%),
+   var(--bg)}
+header:before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;opacity:.28;-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 15%,transparent 72%);mask-image:radial-gradient(ellipse at 50% 30%,#000 15%,transparent 72%);pointer-events:none}
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:52px;align-items:center;padding:76px 20px 84px}
+h1{font-size:clamp(34px,5.1vw,62px);line-height:1.02;letter-spacing:-.055em;margin:0 0 22px;font-weight:800}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:18.5px;color:var(--mut);max-width:56ch;margin:0 0 30px}
+.lead b{color:var(--tx);font-weight:600}
 .btns{display:flex;flex-wrap:wrap;gap:12px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;font-weight:650;border:1px solid var(--line);color:var(--tx);background:var(--card)}
-.btn:hover{text-decoration:none;border-color:var(--ac)}
-.btn.pri{background:linear-gradient(100deg,var(--ac),#19c9e6);color:#04121a;border:0}
-.logo3d{perspective:900px;display:grid;place-items:center}
-.logo3d img{width:min(300px,62vw);filter:drop-shadow(0 0 46px rgba(0,240,200,.28));animation:spin 14s ease-in-out infinite}
-@keyframes spin{0%,100%{transform:rotateY(-24deg) rotateX(6deg)}50%{transform:rotateY(24deg) rotateX(-6deg)}}
-@media (prefers-reduced-motion:reduce){.logo3d img{animation:none}}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
-.stats div{background:var(--bg2);padding:22px 20px;text-align:center}
-.stats b{display:block;font-size:28px;color:var(--ac);font-variant-numeric:tabular-nums}.stats span{font-size:13.5px;color:var(--mut)}
-section{padding:72px 0}h2{font-size:clamp(26px,3.4vw,36px);margin:0 0 10px;letter-spacing:-.5px}
-.sub{color:var(--mut);max-width:70ch;margin:0 0 34px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
-.card h3{margin:0 0 6px;font-size:18px}.card p{margin:0 0 12px;color:var(--mut);font-size:15px}
-.card code{display:block;background:#060a14;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13.5px;color:var(--ac);overflow-x:auto;white-space:nowrap}
-.alt{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-pre{background:#060a14;border:1px solid var(--line);border-radius:12px;padding:18px;overflow-x:auto;font-size:13.5px;line-height:1.55;margin:0}
-pre .c{color:#5d6f90}pre .g{color:#3ddc84}pre .r{color:#ff6b6b}pre .a{color:var(--ac)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
-table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.8px}
-td.y{color:var(--ac)}td.n{color:var(--mut)}
-ol.steps{padding-left:20px;margin:0}ol.steps li{margin-bottom:12px}
-footer{padding:44px 0 60px;color:var(--mut);font-size:14.5px;border-top:1px solid var(--line)}
+.fine{margin:20px 0 0;font:500 13px var(--mono);color:var(--dim)}
+
+/* demonstração: linha do tempo */
+.demo{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line2);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(0,240,200,.04);overflow:hidden}
+.demo-bar{white-space:nowrap;display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font:600 13px var(--mono);color:var(--mut)}
+.demo-bar i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+.demo-bar b{color:var(--tx);margin-left:4px}
+.demo-bar button{margin-left:auto;font:600 12px var(--mono);color:var(--mut);background:none;border:1px solid var(--line2);border-radius:8px;padding:5px 10px;cursor:pointer}
+.demo-bar button:hover{color:var(--tx);border-color:var(--ac)}
+.state{padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(6,9,19,.45)}
+.state p{margin:0 0 8px;font:600 11.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.state p span{color:var(--ac);letter-spacing:0;text-transform:none;font-weight:500}
+.state dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font:500 13px var(--mono)}
+.state dt{color:var(--mut)}
+.state dd{margin:0;color:var(--tx);border-radius:5px;padding:0 5px;justify-self:start}
+.state dd.bad{color:var(--red)}
+.state dd.chg{animation:flash 1.3s ease-out}
+@keyframes flash{0%{background:rgba(0,240,200,.45)}100%{background:transparent}}
+.log{list-style:none;margin:0;padding:10px 8px 10px 16px;max-height:432px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.log li{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 0}
+.log li:before{content:"";position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--line2)}
+.log li:first-child:before{top:50%}
+.log li:last-child:before{bottom:50%}
+.log .dot{position:relative;width:14px;height:14px;border-radius:50%;background:var(--card);border:2.5px solid var(--c,var(--mut));z-index:1}
+.log .now .dot{background:var(--ac);border-color:var(--ac);box-shadow:0 0 0 5px rgba(0,240,200,.16)}
+.log .t{min-width:0}
+.log .t b{display:block;font:600 13.5px/1.35 var(--sans);color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log .t small{font:500 11.5px var(--mono);color:var(--dim)}
+.log .t small u{text-decoration:none;color:var(--c,var(--mut))}
+.log button{font:650 12.5px var(--sans);color:var(--tx);background:#1B2850;border:1px solid var(--line2);border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.log button:hover{background:var(--ac);border-color:var(--ac);color:#04121a}
+.log .now .here{font:600 11.5px var(--mono);color:var(--ac);padding-right:6px}
+.log li.new{animation:slide .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes slide{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.k-install{--c:#6FA8FF}.k-boot{--c:#6FA8FF}.k-dnf{--c:var(--ac)}.k-hora{--c:#8091B3}.k-manual{--c:#fff}.k-antes{--c:var(--amber)}
+.demo-msg{margin:0;padding:12px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--mut);min-height:64px}
+.demo-msg b{color:var(--tx)}
+
+/* faixa de números */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);background:var(--bg2)}
+.stats div{padding:24px 20px;text-align:center;border-left:1px solid var(--line)}
+.stats div:first-child{border-left:0}
+.stats b{display:block;font:800 28px/1.1 var(--mono);letter-spacing:-.04em;color:var(--ac)}
+.stats span{font-size:13.5px;color:var(--mut)}
+
+/* git ↔ máquina */
+.map{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.map div{display:grid;grid-template-columns:230px 190px 1fr;gap:18px;align-items:baseline;padding:15px 22px;border-top:1px solid var(--line)}
+.map div:first-child{border-top:0;background:#0A1226;font:600 11.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding-block:11px}
+.map code{background:none;border:0;padding:0;color:var(--dim);font-size:14px}
+.map b{font:700 15px var(--mono);letter-spacing:-.02em;color:var(--ac)}
+.map span{color:var(--mut);font-size:15px}
+.note{margin:18px 0 0;color:var(--dim);font-size:14.5px;max-width:75ch}
+
+/* grades e cartões */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.card p{margin:0;color:var(--mut);font-size:15px}
+.card .n{display:block;font:700 12px var(--mono);letter-spacing:.1em;color:var(--ac);margin-bottom:12px;text-transform:uppercase}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:center}
+.two.top{align-items:start}
+
+/* tabelas */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+.tw.wide table{min-width:680px}
+th,td{text-align:left;padding:12px 18px;border-top:1px solid var(--line);vertical-align:top}
+tr:first-child th{border-top:0}
+thead th{font:600 11.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);background:#0A1226}
+tbody th{font-weight:600;color:var(--tx);white-space:nowrap}
+td{color:var(--mut)}
+td.v2{color:var(--tx)}
+.pill{display:inline-block;font:600 11.5px var(--mono);border:1px solid var(--c,var(--line2));color:var(--c,var(--mut));border-radius:99px;padding:2px 9px;white-space:nowrap}
+
+/* listas */
+ul.ck{list-style:none;padding:0;margin:0 0 6px}
+ul.ck li{padding:6px 0 6px 26px;position:relative;color:var(--mut)}
+ul.ck li:before{content:"";position:absolute;left:2px;top:15px;width:9px;height:9px;border-radius:50%;border:2px solid var(--ac)}
+ul.ck b{color:var(--tx);font-weight:600}
+
+/* abas */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}
+.tabs button{font:600 14px var(--sans);color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:8px 16px;cursor:pointer}
+.tabs button:hover{color:var(--tx);border-color:var(--line2)}
+.tabs button[aria-selected=true]{color:#04121a;background:var(--ac);border-color:transparent}
+.pane{display:none}
+.pane.on{display:block}
+.pane>p{color:var(--mut);max-width:80ch;margin:16px 0 0}
+.shot{width:100%;border-radius:var(--r);border:1px solid var(--line2);box-shadow:0 26px 70px rgba(0,0,0,.55);display:block}
+.diag{width:100%;border-radius:var(--r);border:1px solid var(--line);display:block;background:#070B16}
+
+/* terminal */
+pre{background:#050810;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;overflow-x:auto;font-size:13.5px;line-height:1.6;margin:0;color:#D5DEEE}
+pre .c{color:var(--dim)}pre .a{color:var(--ac)}
+.term{border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;background:#050810}
+.term>div{display:flex;gap:6px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.term>div i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+.term pre{border:0;border-radius:0}
+
+/* fluxo de atualização */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:center}
+.flow div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.flow div b{display:block;font:700 13px var(--mono);color:var(--ac);margin-bottom:4px}
+.flow div span{color:var(--mut);font-size:14px}
+.flow>i{font:700 12px var(--mono);font-style:normal;color:var(--dim);text-align:center}
+
+/* ferramentas */
+.tools{border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden}
+.tools div{display:grid;grid-template-columns:240px 1fr;gap:18px;padding:13px 20px;border-top:1px solid var(--line);align-items:baseline}
+.tools div:first-child{border-top:0}
+.tools b{font-weight:600;font-size:15px}
+.tools span{font:500 13.5px/1.8 var(--mono);color:var(--mut)}
+
+/* novidades */
+.rel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+.rel .card h3{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.rel .card h3 i{font:700 11px var(--mono);font-style:normal;border-radius:6px;padding:3px 8px;color:#04121a;background:var(--c)}
+.rel ul{margin:0;padding-left:18px;color:var(--mut);font-size:15px}
+.rel li{margin-bottom:9px}
+.rel li b{color:var(--tx);font-weight:600}
+.hist{list-style:none;margin:28px 0 0;padding:0}
+.hist li{position:relative;padding:0 0 26px 34px}
+.hist li:before{content:"";position:absolute;left:6px;top:8px;bottom:-8px;width:2px;background:var(--line2)}
+.hist li:last-child:before{display:none}
+.hist li:after{content:"";position:absolute;left:0;top:5px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--mut);background:var(--bg)}
+.hist li.cur:after{border-color:var(--ac);background:var(--ac);box-shadow:0 0 0 5px rgba(0,240,200,.16)}
+.hist h3{margin:0 0 2px;font-size:16px}
+.hist h3 small{font:500 12.5px var(--mono);color:var(--dim);margin-left:8px;letter-spacing:0}
+.hist p{margin:0;color:var(--mut);font-size:15px;max-width:76ch}
+.callout{margin-top:22px;border:1px solid rgba(255,180,84,.35);background:rgba(255,180,84,.06);border-radius:var(--r);padding:16px 20px;color:var(--mut);font-size:15px}
+.callout b{color:var(--amber)}
+
+/* baixar */
+ol.steps{padding-left:22px;margin:0 0 18px;color:var(--mut)}
+ol.steps li{margin-bottom:10px}
+ol.steps b{color:var(--tx);font-weight:600}
+.sha{margin:14px 0 0;font:500 12px/1.6 var(--mono);color:var(--dim);word-break:break-all}
+.sha b{color:var(--mut);font-weight:600}
+.dlhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px 9px 16px;border-bottom:1px solid var(--line);font:600 12.5px var(--mono);color:var(--mut)}
+.dlhead button{font:650 12.5px var(--sans);color:#04121a;background:var(--ac);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
+
+/* docs, café, rodapé */
+.docs{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.docs a{display:block;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;color:var(--tx);transition:border-color .15s,transform .15s}
+.docs a:hover{border-color:var(--ac);text-decoration:none;transform:translateY(-2px)}
+.docs a b{font:700 15px var(--mono);letter-spacing:-.02em}
+.docs a span{display:block;color:var(--mut);font-size:14px;margin-top:4px}
+.cafe{max-width:660px;margin:0 auto;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:40px 28px}
+.cafe .sub{margin:0 auto;font-size:16px}
+.pix{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0 10px}
+.pix code{background:#050810;border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:15.5px;color:var(--ac)}
+.pix button{font:650 15px var(--sans);border:0;border-radius:10px;padding:12px 20px;cursor:pointer;color:#04121a;background:var(--ac)}
+footer{padding:44px 0 64px;color:var(--mut);font-size:14.5px;border-top:1px solid var(--line)}
 footer b{color:var(--tx)}
-@media(max-width:820px){.hero{grid-template-columns:1fr;padding:54px 0 60px}.logo3d{order:-1}.two{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}nav .links a.opt{display:none}}
-.shot{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.5);display:block}
-.diag{width:100%;border-radius:14px;border:1px solid var(--line);display:block;background:#070B16}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
-.tabs button{font:inherit;font-weight:600;font-size:14.5px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:8px 18px;cursor:pointer}
-.tabs button[aria-selected=true]{color:#04121a;background:linear-gradient(100deg,var(--ac),#19c9e6);border-color:transparent}
-.pane{display:none}.pane.on{display:block}
-.pane p{color:var(--mut);max-width:78ch}
-ul.ck{list-style:none;padding:0;margin:0 0 18px}ul.ck li{padding:5px 0 5px 26px;position:relative;color:var(--mut)}ul.ck li:before{content:"";position:absolute;left:2px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--ac)}
-ul.ck b{color:var(--tx)}
-.cafe{max-width:640px;margin:0 auto;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:38px 28px}
-.cafe .cup{font-size:44px;line-height:1}
-.pix{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0 8px}
-.pix code{background:#060a14;border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:16.5px;color:var(--ac)}
-.pix button{font:inherit;font-weight:650;border:0;border-radius:10px;padding:12px 20px;cursor:pointer;color:#04121a;background:linear-gradient(100deg,var(--ac),#19c9e6)}
-.docs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.docs a{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;color:var(--tx)}
-.docs a:hover{border-color:var(--ac);text-decoration:none}.docs a span{display:block;color:var(--mut);font-size:14px;margin-top:4px}
+footer p{max-width:86ch}
+
+@media(max-width:1000px){
+  .hero{grid-template-columns:minmax(0,1fr);padding-top:52px;gap:38px}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3,.rel{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr);gap:28px}
+  nav .links a.opt{display:none}
+}
+@media(max-width:720px){
+  section{padding:60px 0}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stats div:nth-child(3){border-left:0}
+  .stats div:nth-child(n+3){border-top:1px solid var(--line)}
+  .g2,.g4{grid-template-columns:minmax(0,1fr)}
+  .map div{grid-template-columns:minmax(0,1fr);gap:2px}
+  .map div:first-child{display:none}
+  .tools div{grid-template-columns:minmax(0,1fr);gap:2px}
+  .flow{grid-template-columns:minmax(0,1fr)}
+  nav .brand span{display:none}
+  .log button{padding:6px 9px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*:before,*:after{animation:none!important;transition:none!important}
+}
 </style>
 </head>
 <body>
-<nav><div class="wrap"><img src="assets/logo.svg" alt=""><b>MilizOS</b>
-<div class="links"><a class="opt" href="#heloisa">Heloisa</a><a class="opt" href="#pandora">Pandora</a><a class="opt" href="#porbaixo">Por baixo</a><a class="opt" href="#docs">Documentação</a><a href="#baixar">Baixar</a><a href="#cafe">Doe um café</a><a href="https://github.com/Daniel-Pereira-Linux/milizos">GitHub</a></div></div></nav>
 
-<header><canvas id="mesh"></canvas><div class="wrap hero">
+<nav><div class="wrap">
+<a class="brand" href="#topo"><img src="assets/logo.svg" alt="" width="30" height="30">MilizOS <span>2.0</span></a>
+<div class="links">
+<a class="opt" href="#commit">Tudo é commit</a>
+<a class="opt" href="#heloisa">Heloisa</a>
+<a class="opt" href="#pandora">Pandora</a>
+<a class="opt" href="#novidades">O que mudou</a>
+<a class="opt" href="#docs">Documentação</a>
+<a class="opt" href="https://github.com/Daniel-Pereira-Linux/milizos">GitHub</a>
+<a class="cta" href="#baixar">Baixar</a>
+</div></div></nav>
+
+<header id="topo"><div class="wrap hero">
 <div>
-<span class="tag">SOC · Blue Team · Network Engineering</span>
-<h1>A distribuição Linux<br><span>para quem defende.</span></h1>
-<p class="lead">Uma distribuição Linux baseada em Fedora, feita para times de segurança e redes: um sistema gravável em que qualquer coisa volta a uma versão anterior, caixas descartáveis com outras distribuições e centenas de ferramentas prontas — em uma única ISO com instalador próprio.</p>
-<div class="btns"><a class="btn pri" href="#baixar">Baixar a ISO</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos">Código-fonte</a><a class="btn" href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/MANUAL.md">Manual</a></div>
+<span class="eyebrow">MilizOS 2.0 "Heloisa"</span>
+<h1>Na sua máquina,<br><em>tudo é commit.</em></h1>
+<p class="lead">O MilizOS é um Linux <b>totalmente gravável</b> em que a máquina inteira tem histórico: sistema, arquivos pessoais e logs. Instalou, editou, apagou, quebrou? Volte um arquivo, uma pasta ou o sistema todo a qualquer ponto. E voltar também vira história.</p>
+<div class="btns">
+<a class="btn pri" href="#baixar">Baixar a ISO <small>2.0 · 3,3 GB</small></a>
+<a class="btn" href="#novidades">O que mudou na 2.0</a>
 </div>
-<div class="logo3d"><img src="assets/logo.svg" alt="Logo do MilizOS: um N em topologia de rede dentro de um escudo hexagonal"></div>
+<p class="fine">Base Fedora 44 · para SOC, Blue Team e redes · roda em 4 GB de RAM</p>
+</div>
+
+<div class="demo" id="demo">
+<div class="demo-bar"><i></i><i></i><i></i><b>Heloisa</b> linha do tempo <button type="button" id="demo-reset">recomeçar</button></div>
+<div class="state">
+<p>A máquina agora <span id="demo-head"></span></p>
+<dl>
+<dt>pacote zeek</dt><dd id="s-zeek"></dd>
+<dt>/etc/ssh/sshd_config</dt><dd id="s-ssh"></dd>
+<dt>~/relatorio.odt</dt><dd id="s-rel"></dd>
+</dl>
+</div>
+<ol class="log" id="demo-log" aria-label="Pontos da linha do tempo, do mais novo ao mais antigo"></ol>
+<p class="demo-msg" id="demo-msg" aria-live="polite"></p>
+<noscript><p class="demo-msg">A demonstração interativa precisa de JavaScript. As capturas reais do aplicativo estão mais abaixo.</p></noscript>
+</div>
 </div></header>
 
 <div class="stats">
-<div><b>4 GB</b><span>de RAM bastam</span></div>
-<div><b>2.312</b><span>pacotes na imagem</span></div>
-<div><b>2,8 GB</b><span>tamanho da ISO</span></div>
-<div><b>3</b><span>perfis: SOC, redes, sensor</span></div>
+<div><b>&lt; 1 s</b><span>para criar um ponto da máquina inteira</span></div>
+<div><b>15</b><span>pontos direto no menu de boot</span></div>
+<div><b>4 GB</b><span>de RAM bastam para o desktop completo</span></div>
+<div><b>0</b><span>formatos próprios: é btrfs, podman e dnf</span></div>
 </div>
 
-<section id="recursos"><div class="wrap">
-<h2>O que só o MilizOS faz</h2>
-<p class="sub">Um sistema totalmente gravável em que tudo tem história, e dois aplicativos que não existem em nenhuma outra distribuição. O que foi e o que não foi testado está nos <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md">problemas conhecidos</a>.</p>
-<div class="grid">
-<div class="card"><h3>Heloisa: a máquina do tempo</h3><p>Um aplicativo que volta <b>qualquer coisa</b> a uma versão anterior: o sistema inteiro, o <code style="display:inline;padding:1px 5px">/home</code>, uma pasta ou um único arquivo de configuração. Como um git da máquina.</p><code>aplicativo Heloisa</code></div>
-<div class="card"><h3>Gravável, com história</h3><p>Nada é somente-leitura: <code style="display:inline;padding:1px 5px">dnf</code>, <code style="display:inline;padding:1px 5px">/etc</code>, <code style="display:inline;padding:1px 5px">/usr</code>, tudo pode mudar. Um ponto da máquina inteira é criado de hora em hora, a cada boot e antes de cada instalação de pacotes.</p><code>snapshots btrfs</code></div>
-<div class="card"><h3>Voltar nunca apaga</h3><p>Antes de qualquer volta, o estado atual vira um ponto. Voltou e se arrependeu? Volte para o ponto anterior. A história só cresce.</p><code>como um git revert</code></div>
-<div class="card"><h3>Pelo menu de boot</h3><p>O sistema não inicia? O GRUB lista os 15 pontos mais recentes, cada um com o kernel daquele momento. O estado quebrado fica guardado para análise.</p><code>submenu Heloisa no GRUB</code></div>
-<div class="card"><h3>Resgate pela mídia</h3><p>Apagaram o <code style="display:inline;padding:1px 5px">/boot</code>? Inicie pelo pendrive: a Heloisa encontra os pontos no disco, restaura o sistema e reinstala o boot.</p><code>Heloisa em modo live</code></div>
-<div class="card"><h3>Pandora: caixas Linux</h3><p>Debian, Kali, Alma, Ubuntu, Arch e outros rodando dentro do MilizOS. O que você instala na caixa ganha atalho no menu do GNOME sozinho, e continua rodando na caixa.</p><code>aplicativo Pandora</code></div>
-<div class="card"><h3>Rede isolada ou em ponte</h3><p>Caixa <i>isolada</i> só sai para a internet: não alcança sua rede local nem o host. Caixa em <i>ponte</i> usa a rede do host, para varredura e captura.</p><code>dois modos por caixa</code></div>
-<div class="card"><h3>Destruiu, sumiu</h3><p>Apagar uma caixa leva junto os programas, os atalhos e a pasta dela. O sistema base não é tocado.</p><code>descartável de verdade</code></div>
-<div class="card"><h3>Sem comandos próprios</h3><p>As ferramentas são as originais, com o nome e o manual de sempre. Os pontos ficam em <code style="display:inline;padding:1px 5px">/.heloisa</code>, legíveis com <code style="display:inline;padding:1px 5px">cp</code> e <code style="display:inline;padding:1px 5px">diff</code>; as caixas são podman comum.</p><code>btrfs · podman · dnf</code></div>
-<div class="card"><h3>Roda em 4 GB</h3><p>Swap comprimido em RAM e nenhum efeito pesado no desktop: a animação 3D ficou só na tela de boot.</p><code>zram + zstd</code></div>
-<div class="card"><h3>Sensor IDS em um perfil</h3><p>O perfil <i>sensor</i> sobe o Suricata na interface certa, sem interface gráfica e pronto para rack.</p><code>perfil sensor</code></div>
-</div></div></section>
+<section id="commit"><div class="wrap">
+<span class="eyebrow">A ideia</span>
+<h2>Pense na máquina como um repositório</h2>
+<p class="sub">Você não precisa saber git para usar. Mas, se sabe, já entendeu o MilizOS: cada momento da máquina é um <em>ponto</em>, e um ponto é para o computador o que um commit é para o código.</p>
+<div class="map">
+<div><span>No git</span><span>No MilizOS</span><span>O que acontece</span></div>
+<div><code>git commit</code><b>ponto</b><span>Sistema, <code>/home</code> e logs congelados no mesmo instante, com o kernel daquele momento.</span></div>
+<div><code>hook de pre-commit</code><b>pontos automáticos</b><span>Um ponto nasce sozinho antes de cada <code>dnf</code>, de hora em hora e na primeira inicialização do dia.</span></div>
+<div><code>git log</code><b>linha do tempo</b><span>A lista de todos os pontos, com o motivo de cada um e o que mudou desde então.</span></div>
+<div><code>git diff</code><b>comparar versões</b><span>Diff colorido de qualquer arquivo contra qualquer ponto; pacotes que entraram, saíram ou mudaram.</span></div>
+<div><code>git checkout -- arquivo</code><b>voltar um caminho</b><span>Um arquivo ou uma pasta volta exatamente como era. Inclusive o que foi apagado.</span></div>
+<div><code>git revert</code><b>voltar a máquina</b><span>O estado atual vira um ponto antes de qualquer volta. A história só cresce, nunca é reescrita.</span></div>
+<div><code>.git/</code><b>/.heloisa</b><span>Os pontos ficam montados somente leitura, legíveis com <code>ls</code>, <code>diff</code> e <code>cp</code>.</span></div>
+</div>
+<p class="note">É uma comparação, não um git de verdade: não há ramos nem merge. Por baixo são snapshots btrfs, e o aplicativo que cuida deles se chama Heloisa.</p>
+</div></section>
+
+<section class="alt"><div class="wrap">
+<span class="eyebrow">Quando nasce um ponto</span>
+<h2>Você não precisa lembrar de salvar</h2>
+<p class="sub">Os pontos nascem sozinhos nos momentos em que as coisas costumam dar errado. Cada tipo tem a sua regra de retenção, e os manuais nunca expiram.</p>
+<div class="tw"><table>
+<thead><tr><th>Quando</th><th>Tipo</th><th>Quantos ficam</th></tr></thead>
+<tbody>
+<tr><th>Fim da instalação</th><td><span class="pill" style="--c:#6FA8FF">instalação</span></td><td>para sempre</td></tr>
+<tr><th>Antes de cada transação do <code>dnf</code></th><td><span class="pill" style="--c:var(--ac)">pacotes</span></td><td>os 12 mais recentes</td></tr>
+<tr><th>De hora em hora</th><td><span class="pill">automático</span></td><td>todos por 24 h, depois um por dia por 14 dias</td></tr>
+<tr><th>Primeira inicialização do dia</th><td><span class="pill" style="--c:#6FA8FF">inicialização</span></td><td>os 5 mais recentes</td></tr>
+<tr><th>Antes de qualquer volta</th><td><span class="pill" style="--c:var(--amber)">antes de voltar</span></td><td>os 12 mais recentes</td></tr>
+<tr><th>Botão <b>Criar ponto agora</b></th><td><span class="pill" style="--c:#fff">manual</span></td><td>para sempre</td></tr>
+</tbody></table></div>
+<p class="note">Um ponto não copia arquivos: o btrfs só segura os blocos daquele instante. 500 GB de arquivos parados custam zero por ponto, e com menos de 15% de disco livre os automáticos mais antigos saem sozinhos.</p>
+</div></section>
+
+<section><div class="wrap">
+<span class="eyebrow">Do menor estrago ao maior</span>
+<h2>Quatro jeitos de voltar</h2>
+<p class="sub">Quanto pior a situação, mais cedo no boot a volta acontece. Em todos os casos o estado quebrado fica guardado como um ponto, para análise.</p>
+<div class="grid g4">
+<div class="card"><span class="n">Um arquivo deu errado</span><h3>Volte só ele</h3><p>Veja todas as versões que um arquivo ou pasta já teve, compare e traga de volta no lugar ou como cópia ao lado.</p></div>
+<div class="card"><span class="n">A máquina deu errado</span><h3>Volte tudo, ou parte</h3><p>Escolha o que volta: sistema, arquivos pessoais, logs ou qualquer combinação. A troca vale ao reiniciar.</p></div>
+<div class="card"><span class="n">Não inicia mais</span><h3>Pelo menu de boot</h3><p>O GRUB lista os 15 pontos mais recentes. A volta acontece antes de a raiz ser montada, com o kernel daquele ponto.</p></div>
+<div class="card"><span class="n">Nem o boot sobrou</span><h3>Resgate pela mídia</h3><p>Inicie pelo pendrive: a Heloisa acha os pontos no disco, restaura o sistema e reconstrói <code>/boot</code> e o GRUB.</p></div>
+</div>
+<p class="note">O que já foi e o que ainda não foi testado em cada caminho está nos <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md">problemas conhecidos</a>. O resgate pela mídia, por exemplo, ainda não foi repetido na 2.0.</p>
+</div></section>
+
+<section class="alt" id="heloisa"><div class="wrap">
+<span class="eyebrow">O aplicativo</span>
+<h2>Heloisa: a máquina do tempo</h2>
+<p class="sub">Capturas reais do sistema instalado. Uma senha de administrador por sessão, e a janela nunca roda como root.</p>
+<div data-tabs>
+<div class="tabs" role="tablist" aria-label="Telas da Heloisa">
+<button role="tab" aria-selected="true" data-p="h1">Linha do tempo</button>
+<button role="tab" aria-selected="false" data-p="h2">Versões de um arquivo</button>
+<button role="tab" aria-selected="false" data-p="h3">Diff</button>
+<button role="tab" aria-selected="false" data-p="h4">Menu de boot</button>
+</div>
+<div class="pane on" id="h1"><img class="shot" src="assets/heloisa-linha-do-tempo.png" width="1280" height="800" alt="Heloisa: linha do tempo com sete pontos, cada um com o tipo e o botão Voltar para cá"><p>Cada linha é a máquina inteira congelada. O menu de cada ponto mostra o que mudou desde então e deixa explorar os arquivos como eram.</p></div>
+<div class="pane" id="h2"><img class="shot" src="assets/heloisa-qualquer-coisa.png" width="1280" height="800" loading="lazy" alt="Heloisa: aba Qualquer coisa com as versões de /etc/teste.conf em cada ponto"><p>A aba <b>Qualquer coisa</b> navega por todo o sistema de arquivos e lista as versões de um caminho. O seletor <b>Ver:</b> mostra as pastas como eram em um ponto, e é assim que se acha o que foi apagado.</p></div>
+<div class="pane" id="h3"><img class="shot" src="assets/heloisa-diff.png" width="1280" height="800" loading="lazy" alt="Heloisa: diff colorido entre a versão de um ponto e a versão atual de um arquivo"><p>Antes de voltar, compare. O diff mostra exatamente o que muda se você trouxer aquela versão.</p></div>
+<div class="pane" id="h4"><img class="shot" src="assets/grub-heloisa.png" width="1280" height="800" loading="lazy" alt="Submenu Heloisa do GRUB listando pontos com número, data e descrição"><p>O submenu <b>Heloisa: voltar o sistema no tempo</b> do GRUB. Escolher um ponto inicia o sistema daquele momento; o que estava quebrado vira um ponto novo.</p></div>
+</div>
+</div></section>
 
 <section><div class="wrap two">
-<div><h2>Nada é formato próprio</h2><p class="sub">Cada ponto da Heloisa é um snapshot btrfs comum, montado somente leitura em <code>/.heloisa</code>. Se o aplicativo sumir amanhã, as ferramentas de sempre continuam lendo tudo.</p>
-<p class="sub" style="margin:0">O mesmo vale para a Pandora: as caixas aparecem em <code>podman ps</code> e <code>distrobox list</code>.</p></div>
+<div>
+<span class="eyebrow">Sem amarras</span>
+<h2>Nada é formato próprio</h2>
+<p class="sub" style="margin-bottom:18px">Cada ponto é um snapshot btrfs comum, montado somente leitura em <code>/.heloisa</code>. Se o aplicativo sumir amanhã, as ferramentas de sempre continuam lendo tudo.</p>
+<ul class="ck">
+<li><b>Sem comandos próprios</b>: as ferramentas são as originais, com o nome e o manual de sempre.</li>
+<li><b>Gravável de verdade</b>: <code>dnf</code>, <code>/etc</code>, <code>/usr</code>. Nada é somente leitura, nada é imutável.</li>
+<li><b>Não substitui backup</b>: os pontos vivem no mesmo disco. Protegem de erro, atualização ruim e ransomware comum, não da morte do disco.</li>
+</ul>
+</div>
+<div class="term"><div><i></i><i></i><i></i></div>
 <pre><span class="c">$</span> ls /.heloisa
 1  2  3  7  8  12  13
 <span class="c">$</span> cat /.heloisa/12/info.json
 {"id": 12, "time": "2026-11-11 14:02:10",
  "kind": "dnf", "desc": "antes de: dnf install zeek"}
 <span class="c">$</span> diff -u /.heloisa/12/root/etc/fstab /etc/fstab
-<span class="c">$</span> sudo cp -a /.heloisa/7/home/ana/relatorio.odt ~/</pre>
+<span class="c">$</span> sudo cp -a /.heloisa/7/home/ana/relatorio.odt ~/</pre></div>
 </div></section>
 
-<section id="ferramentas"><div class="wrap">
-<h2>Ferramentas</h2>
-<p class="sub">Organizadas por função no menu e no terminal. Cada uma com o seu próprio nome e manual.</p>
-<table>
-<tr><th>Categoria</th><th>Exemplos</th></tr>
-<tr><td>Tráfego e captura</td><td>Wireshark, tcpdump, tshark, ngrep, tcpflow, tcpreplay, mitmproxy, argus, nfdump</td></tr>
-<tr><td>Detecção e monitoramento</td><td>Suricata, fail2ban, auditd, osquery, sysdig, glances, psad</td></tr>
-<tr><td>Descoberta e varredura</td><td>nmap, masscan, zmap, arp-scan, fping, dnsrecon, gobuster, ffuf, sslyze</td></tr>
-<tr><td>Diagnóstico de rede</td><td>mtr, iperf3, trippy, bandwhich, gping, dog, ethtool, bpftrace</td></tr>
-<tr><td>Engenharia de redes</td><td>FRR, BIRD, ExaBGP, Ansible, Netmiko, Scapy, WireGuard, strongSwan, libvirt</td></tr>
-<tr><td>Forense e análise de malware</td><td>Sleuth Kit, YARA, ClamAV, binwalk, rizin, bulk_extractor, ddrescue, gdb</td></tr>
-<tr><td>Senhas e criptografia</td><td>hashcat, John the Ripper, hydra, medusa, crunch, age</td></tr>
-<tr><td>Redes sem fio e rádio</td><td>aircrack-ng, Kismet, hcxtools, GNU Radio, rtl-sdr, HackRF</td></tr>
-<tr><td>Auditoria e hardening</td><td>OpenSCAP, Lynis, AIDE, trivy, rkhunter, checksec, testssl</td></tr>
-</table>
-<p class="sub" style="margin-top:18px">A lista exata depende do que existe nos repositórios do Fedora.</p>
-</div></section>
-
-<section class="alt" id="heloisa"><div class="wrap two">
-<div><span class="tag">Máquina do tempo</span><h2>Heloisa volta qualquer coisa</h2>
-<p class="sub" style="margin-bottom:18px">O sistema é totalmente gravável. A segurança vem de outro lugar: tudo tem história, como em um repositório git.</p>
-<ul class="ck">
-<li><b>A máquina inteira</b>: sistema, arquivos pessoais e logs congelados em um ponto, em menos de um segundo.</li>
-<li><b>Um arquivo, uma pasta</b>: todas as versões que já existiram, com diff, inclusive do que foi apagado.</li>
-<li><b>Pontos automáticos</b>: de hora em hora, a cada boot e antes de cada instalação de pacotes.</li>
-<li><b>Voltar nunca apaga</b>: o estado atual vira um ponto antes. Dá para desfazer o desfazer.</li>
-<li><b>Quase sem custo</b>: um ponto só ocupa o que mudar depois dele, e os antigos saem sozinhos se o disco apertar.</li>
-</ul></div>
-<div><img class="shot" src="assets/heloisa-linha-do-tempo.png" alt="Heloisa: linha do tempo com sete pontos, cada um com o botão Voltar para cá" loading="lazy"></div>
-</div>
-<div class="wrap two" style="margin-top:34px">
-<div><img class="shot" src="assets/heloisa-qualquer-coisa.png" alt="Heloisa: as versões de /etc/teste.conf em cada ponto" loading="lazy"></div>
-<div><img class="shot" src="assets/heloisa-diff.png" alt="Heloisa: diff colorido entre a versão de um ponto e a atual" loading="lazy"></div>
-</div></section>
-
-<section id="pandora"><div class="wrap two">
-<div><img class="shot" src="assets/pandora-caixas.png" alt="Pandora: uma caixa Alpine isolada com o Htop exportado para o menu" loading="lazy"></div>
-<div><span class="tag">Caixas Linux</span><h2>Pandora: outro Linux, pronto para jogar fora</h2>
-<p class="sub" style="margin-bottom:18px">Debian, Kali, AlmaLinux, Ubuntu, Fedora, Arch, Rocky, openSUSE, Alpine ou Parrot dentro do MilizOS, sem root.</p>
+<section class="alt" id="pandora"><div class="wrap two">
+<div><img class="shot" src="assets/pandora-caixas.png" width="1280" height="800" loading="lazy" alt="Pandora: uma caixa Alpine isolada com o Htop exportado para o menu"></div>
+<div>
+<span class="eyebrow">Caixas Linux</span>
+<h2>Pandora: outro Linux, pronto para jogar fora</h2>
+<p class="sub" style="margin-bottom:18px">Debian, Kali, AlmaLinux, Ubuntu, Fedora, Arch, Rocky, openSUSE, Alpine ou Parrot dentro do MilizOS, sem root. O sistema base não é tocado.</p>
 <ul class="ck">
 <li><b>Atalho automático</b>: instalou na caixa, apareceu no menu do GNOME. Continua rodando na caixa.</li>
-<li><b>Isolada</b>: só sai para a internet. Rede local e host são recusados; pasta pessoal separada.</li>
+<li><b>Isolada</b>: só sai para a internet. Rede local e host são recusados, e a pasta pessoal é separada.</li>
 <li><b>Ponte</b>: usa a rede do host, para varredura e captura.</li>
-<li><b>Destruiu, sumiu</b>: programas, atalhos e pasta vão embora. O sistema base não é tocado.</li>
-</ul></div>
+<li><b>Destruiu, sumiu</b>: programas, atalhos e pasta vão embora junto.</li>
+</ul>
+</div>
 </div></section>
 
-<section class="alt" id="porbaixo"><div class="wrap">
-<h2>Por baixo do capô</h2>
-<p class="sub">Sem mágica e sem formato próprio: btrfs, podman, dnf e systemd, combinados. Escolha um tema.</p>
-<div class="tabs" role="tablist">
-<button role="tab" aria-selected="true" data-p="p1">Arquitetura</button>
-<button role="tab" aria-selected="false" data-p="p2">Como um ponto funciona</button>
-<button role="tab" aria-selected="false" data-p="p3">Rede das caixas</button>
-<button role="tab" aria-selected="false" data-p="p4">Boot e resgate</button>
+<section id="porbaixo"><div class="wrap">
+<span class="eyebrow">Por baixo do capô</span>
+<h2>Sem mágica: btrfs, podman, dnf e systemd</h2>
+<p class="sub">Quatro pacotes próprios sobre um Fedora 44. Escolha um tema.</p>
+<div data-tabs>
+<div class="tabs" role="tablist" aria-label="Temas de arquitetura">
+<button role="tab" aria-selected="true" data-p="p1">Como um ponto funciona</button>
+<button role="tab" aria-selected="false" data-p="p2">Boot e resgate</button>
+<button role="tab" aria-selected="false" data-p="p3">Arquitetura</button>
+<button role="tab" aria-selected="false" data-p="p4">Rede das caixas</button>
 <button role="tab" aria-selected="false" data-p="p5">Atualização automática</button>
 </div>
-<div class="pane on" id="p1"><img class="diag" src="assets/arquitetura.svg" alt="Três camadas: aplicativos (Heloisa, Pandora, instalador, ferramentas), motores (heloisa-engine, podman e distrobox, dnf e systemd) e armazenamento (btrfs, /boot, zram)" loading="lazy"><p>Quatro pacotes próprios sobre um Fedora 44. A Heloisa e a Pandora são interfaces para ferramentas que já existem; se elas sumirem, o que criaram continua legível.</p></div>
-<div class="pane" id="p2"><img class="diag" src="assets/heloisa-pontos.svg" alt="O volume btrfs com os subvolumes root, home, log e snapshots; criar um ponto tira um snapshot dos três; voltar transforma o estado atual em ponto e troca o subvolume" loading="lazy"><p>O btrfs é copy-on-write: o ponto não copia arquivos, só segura os blocos daquele instante. Os pontos ficam em <code>/.heloisa</code>, somente leitura.</p></div>
-<div class="pane" id="p3"><img class="diag" src="assets/pandora-rede.svg" alt="A caixa isolada alcança só a internet e é recusada na rede local; a caixa em ponte usa a rede do host; aplicativos instalados viram atalhos no menu" loading="lazy"><p>O isolamento é um conjunto de regras nftables aplicado dentro da rede da própria caixa toda vez que ela liga: endereços privados são recusados, o resto passa.</p></div>
-<div class="pane" id="p4"><img class="diag" src="assets/boot.svg" alt="Firmware, GRUB, initramfs, raiz btrfs e GNOME; pelo submenu Heloisa do GRUB um gancho no initramfs troca a raiz pelo ponto escolhido" loading="lazy"><p>A volta pelo menu de boot acontece antes de o sistema montar a raiz, com o kernel daquele ponto. O sistema que estava quebrado é guardado como um ponto novo.</p></div>
-<div class="pane" id="p5"><pre><span class="a">mantenedor</span>                  <span class="a">GitHub Pages</span>                 <span class="a">cada MilizOS instalado</span>
-corrige o código  ──push──▶  /milizos/repo/  ◀──todo dia──  milizos-update.timer
-gera os pacotes              (repositório dnf)              dnf upgrade --repo=milizos
-                                                            └─ <span class="g">Heloisa cria um ponto antes</span></pre><p style="margin-top:14px">Uma correção publicada chega a todas as máquinas em até 24 horas. Como passa pelo <code>dnf</code>, tem volta.</p></div>
+<div class="pane on" id="p1"><a href="assets/heloisa-pontos.svg" title="Abrir o diagrama em tamanho real"><img class="diag" src="assets/heloisa-pontos.svg" loading="lazy" alt="O volume btrfs com os subvolumes root, home, log e snapshots; criar um ponto tira um snapshot dos três; voltar transforma o estado atual em ponto e troca o subvolume"></a><p>O btrfs é copy-on-write: o ponto não copia arquivos, só segura os blocos daquele instante. Separar <code>home</code> e <code>log</code> de <code>root</code> é o que permite voltar o sistema sem perder documentos nem o registro do que aconteceu.</p></div>
+<div class="pane" id="p2"><a href="assets/boot.svg" title="Abrir o diagrama em tamanho real"><img class="diag" src="assets/boot.svg" loading="lazy" alt="Firmware, GRUB, initramfs, raiz btrfs e GNOME; pelo submenu Heloisa do GRUB um gancho no initramfs troca a raiz pelo ponto escolhido"></a><p>A volta pelo menu de boot acontece antes de o sistema montar a raiz, com o kernel daquele ponto. O sistema que estava quebrado é guardado como um ponto novo.</p></div>
+<div class="pane" id="p3"><a href="assets/arquitetura.svg" title="Abrir o diagrama em tamanho real"><img class="diag" src="assets/arquitetura.svg" loading="lazy" alt="Três camadas: aplicativos (Heloisa, Pandora, instalador, ferramentas), motores (heloisa-engine, podman e distrobox, dnf e systemd) e armazenamento (btrfs, /boot, zram)"></a><p>A Heloisa e a Pandora são interfaces para ferramentas que já existem; se elas sumirem, o que criaram continua legível.</p></div>
+<div class="pane" id="p4"><a href="assets/pandora-rede.svg" title="Abrir o diagrama em tamanho real"><img class="diag" src="assets/pandora-rede.svg" loading="lazy" alt="A caixa isolada alcança só a internet e é recusada na rede local; a caixa em ponte usa a rede do host; aplicativos instalados viram atalhos no menu"></a><p>O isolamento é um conjunto de regras nftables aplicado dentro da rede da própria caixa toda vez que ela liga: endereços privados são recusados, o resto passa.</p></div>
+<div class="pane" id="p5"><div class="flow">
+<div><b>mantenedor</b><span>corrige o código e gera os pacotes</span></div><i>push →</i>
+<div><b>GitHub Pages</b><span>repositório <code>dnf</code> do projeto</span></div><i>← todo dia</i>
+<div><b>cada MilizOS</b><span><code>milizos-update.timer</code> atualiza, e a Heloisa cria um ponto antes</span></div>
+</div><p>Uma correção publicada chega às máquinas em até 24 horas. Como passa pelo <code>dnf</code>, toda atualização tem volta. Só os pacotes do MilizOS se atualizam sozinhos; os do Fedora seguem sob o seu controle.</p></div>
+</div>
+</div></section>
+
+<section class="alt" id="ferramentas"><div class="wrap">
+<span class="eyebrow">Para quem defende</span>
+<h2>Ferramentas de SOC e redes, prontas</h2>
+<p class="sub">Organizadas por função no menu do GNOME, cada uma com o seu próprio nome e manual. Três perfis na instalação: <b>SOC</b>, <b>Redes</b> e <b>Sensor</b> (Suricata sem interface gráfica, pronto para rack).</p>
+<div class="tools">
+<div><b>Tráfego e captura</b><span>Wireshark · tcpdump · tshark · ngrep · tcpflow · tcpreplay · mitmproxy · argus · nfdump</span></div>
+<div><b>Detecção e monitoramento</b><span>Suricata · fail2ban · auditd · osquery · sysdig · glances · psad</span></div>
+<div><b>Descoberta e varredura</b><span>nmap · masscan · zmap · arp-scan · fping · dnsrecon · gobuster · ffuf · sslyze</span></div>
+<div><b>Diagnóstico de rede</b><span>mtr · iperf3 · trippy · bandwhich · gping · dog · ethtool · bpftrace</span></div>
+<div><b>Engenharia de redes</b><span>FRR · BIRD · ExaBGP · Ansible · Netmiko · Scapy · WireGuard · strongSwan · libvirt</span></div>
+<div><b>Forense e malware</b><span>Sleuth Kit · YARA · ClamAV · binwalk · rizin · bulk_extractor · ddrescue · gdb</span></div>
+<div><b>Senhas e criptografia</b><span>hashcat · John the Ripper · hydra · medusa · crunch · age</span></div>
+<div><b>Sem fio e rádio</b><span>aircrack-ng · Kismet · hcxtools · GNU Radio · rtl-sdr · HackRF</span></div>
+<div><b>Auditoria e hardening</b><span>OpenSCAP · Lynis · AIDE · trivy · rkhunter · checksec · testssl</span></div>
+</div>
+<p class="note">Só entra na ISO o que existe nos repositórios do Fedora. O que falta, como Metasploit e Burp Suite, roda em uma caixa Kali da Pandora.</p>
+</div></section>
+
+<section id="novidades"><div class="wrap">
+<span class="eyebrow">Notas de versão</span>
+<h2>O que mudou da 1.0 para a 2.0</h2>
+<p class="sub">A 1.0 "Sentinel" era um conjunto de comandos de terminal em volta do <code>nos</code>. A 2.0 "Heloisa" troca isso por uma ideia só: a máquina inteira tem histórico, e tudo se faz por dois aplicativos gráficos e pelas ferramentas originais.</p>
+
+<div class="tw wide"><table>
+<thead><tr><th></th><th>1.0 "Sentinel"</th><th>2.0 "Heloisa"</th></tr></thead>
+<tbody>
+<tr><th>O que entra em um ponto</th><td>Só o sistema. <code>/home</code> tinha snapshots separados; logs não voltavam.</td><td class="v2">A máquina inteira no mesmo instante: sistema, <code>/home</code> e logs.</td></tr>
+<tr><th>Pontos automáticos</th><td>Antes de cada <code>dnf</code> (10 mantidos); <code>/home</code> de hora em hora.</td><td class="v2">Antes de cada <code>dnf</code> (12), de hora em hora, a cada primeira inicialização do dia e antes de toda volta.</td></tr>
+<tr><th>Voltar um arquivo ou pasta</th><td>Só de <code>/home</code>, por comando.</td><td class="v2">De qualquer lugar do sistema, com lista de versões, diff e cópia ao lado.</td></tr>
+<tr><th>Como se usa</th><td>Comando <code>nos checkpoint</code> e <code>nos data</code>.</td><td class="v2">Aplicativo gráfico Heloisa. Nenhum comando próprio.</td></tr>
+<tr><th>Menu de boot</th><td>Submenu de checkpoints.</td><td class="v2">Submenu Heloisa com os 15 pontos mais recentes.</td></tr>
+<tr><th>Outras distribuições</th><td><code>nos box</code>: 5 distribuições, sempre na rede e na pasta do host.</td><td class="v2">Aplicativo Pandora: 10 distribuições, modo isolado ou em ponte, atalhos automáticos no menu.</td></tr>
+<tr><th>Atualização do MilizOS</th><td>Não havia.</td><td class="v2">Automática e diária, pelo repositório <code>dnf</code> do projeto, com ponto antes.</td></tr>
+<tr><th>Memória</th><td>4 GB no mínimo, 8 GB recomendados.</td><td class="v2">4 GB bastam: swap comprimido em RAM (zram).</td></tr>
+<tr><th>Desktop</th><td>Fundo animado, que chegava a quase 400% de CPU sem aceleração 3D.</td><td class="v2">Papel de parede estático. A animação 3D ficou só na tela de boot.</td></tr>
+<tr><th>Tamanho da ISO</th><td>2,9 GB</td><td class="v2">3,3 GB</td></tr>
+</tbody></table></div>
+
+<div class="rel">
+<div class="card"><h3><i style="--c:var(--ac)">NOVO</i>Entrou</h3><ul>
+<li><b>Heloisa</b>, a máquina do tempo: linha do tempo, versões de qualquer caminho, diff e volta pelo aplicativo, pelo GRUB ou pela mídia.</li>
+<li><b>Pandora</b>, as caixas Linux descartáveis, com rede isolada ou em ponte.</li>
+<li><b>Atualização automática</b> diária dos pacotes do MilizOS.</li>
+<li><b>Trava de espaço</b>: com menos de 15% livre, pontos automáticos antigos saem sozinhos.</li>
+<li><b>Pontos legíveis em <code>/.heloisa</code></b>, somente leitura.</li>
+<li><b>Documentação nova</b>: arquitetura e guia do administrador, com capturas e diagramas.</li>
+</ul></div>
+<div class="card"><h3><i style="--c:#6FA8FF">MUDOU</i>Ficou diferente</h3><ul>
+<li><b>Voltar o sistema</b> agora pode levar junto os arquivos pessoais e os logs, ou só parte.</li>
+<li><b>Retenção por tipo</b> de ponto, em vez de um limite único.</li>
+<li><b>Submenu do GRUB</b> passa a se chamar Heloisa e lista os 15 pontos mais recentes.</li>
+<li><b>Ajuste de memória</b> do kernel para swap comprimido.</li>
+<li><b>Download em um comando</b>, que junta as partes e confere o SHA-256.</li>
+<li><b>A montagem da ISO</b> saiu deste repositório; aqui ficam os pacotes, a identidade e a documentação.</li>
+</ul></div>
+<div class="card"><h3><i style="--c:var(--amber)">SAIU</i>Foi removido</h3><ul>
+<li><b>O comando <code>nos</code></b> e todos os subcomandos.</li>
+<li><b>Modo incidente</b> (<code>nos incident</code>), captura em anel e triagem.</li>
+<li><b>Treino de detecção</b> (<code>nos drill</code>).</li>
+<li><b>Atestação de integridade</b> (<code>nos attest</code>).</li>
+<li><b>Forja de ISOs</b> (<code>nos forge</code>). A instalação desassistida por <code>autoinstall.json</code> continua.</li>
+<li><b>Catálogo <code>nos tools</code></b>: as ferramentas seguem no menu, por categoria.</li>
+<li><b>Fundo animado</b> do desktop.</li>
+</ul></div>
+</div>
+
+<div class="callout"><b>Vindo da 1.0?</b> A 1.0 não tem o repositório de atualização, então ela não vira 2.0 sozinha: a troca é por instalação nova, a partir da ISO. Da 2.0 em diante as correções chegam sozinhas.</div>
+
+<ol class="hist">
+<li class="cur"><h3>2.0 "Heloisa" <small>11 nov 2026 · atual</small></h3><p>Máquina do tempo, caixas Linux e atualização automática. <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/tag/v2.0">Ver a release</a> · <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CHANGELOG.md">Histórico completo</a></p></li>
+<li><h3>1.0 "Sentinel" <small>10 nov 2026</small></h3><p>Primeira versão pública: instalador próprio, checkpoints do sistema, comando <code>nos</code> e três perfis. <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/tag/v1.0">Ver a release</a></p></li>
+</ol>
+</div></section>
+
+<section class="alt" id="baixar"><div class="wrap two top">
+<div>
+<span class="eyebrow">Baixar e instalar</span>
+<h2>MilizOS 2.0, em uma ISO</h2>
+<ol class="steps">
+<li><b>Baixe</b> com o comando ao lado: ele junta as duas partes e confere o SHA-256. Ou pegue os arquivos em <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Releases</a>.</li>
+<li><b>Grave</b> em um pendrive. A ISO é híbrida: BIOS e UEFI, com Secure Boot.</li>
+<li><b>Inicie</b> pelo pendrive. O sistema sobe em modo live e o instalador abre sozinho.</li>
+<li><b>Escolha</b> disco, usuário e perfil. Mantenha o <b>btrfs</b>: é ele que dá a linha do tempo.</li>
+</ol>
+<p class="note" style="margin-top:0">Requisitos: x86-64, 4 GB de RAM, 30 GB de disco. Testado em máquina virtual; ainda não em hardware real.</p>
+<p class="sha"><b>SHA-256 da ISO</b><br>6167e3bb68b31acc3f87057381b345b5118b0e5c1fd1830f111ee3b28c8bb14a</p>
+</div>
+<div class="grid">
+<div class="term"><div class="dlhead">baixar, juntar e conferir <button type="button" data-copy="dl1">Copiar</button></div>
+<pre id="dl1">curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
+  &amp;&amp; cat MilizOS-2.0-x86_64.iso.part-* &gt; MilizOS-2.0-x86_64.iso \
+  &amp;&amp; sha256sum -c MilizOS-2.0-x86_64.iso.sha256 &amp;&amp; rm MilizOS-2.0-x86_64.iso.part-*</pre></div>
+<div class="term"><div class="dlhead">gravar no pendrive (troque sdX)</div>
+<pre>sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX \
+        bs=4M status=progress oflag=sync</pre></div>
+<div class="term"><div class="dlhead">ou testar em máquina virtual</div>
+<pre>qemu-system-x86_64 -enable-kvm -m 4G -smp 4 \
+        -cdrom MilizOS-2.0-x86_64.iso</pre></div>
+</div>
 </div></section>
 
 <section id="docs"><div class="wrap">
-<h2>Documentação</h2>
-<p class="sub">Escrita para ser lida: com capturas reais, diagramas e os limites de cada recurso.</p>
+<span class="eyebrow">Documentação</span>
+<h2>Escrita para ser lida</h2>
+<p class="sub">Com capturas reais, diagramas e os limites de cada recurso.</p>
 <div class="docs">
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/MANUAL.md"><b>Manual</b><span>Usar a Heloisa, a Pandora e o sistema no dia a dia.</span></a>
-<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/ADMINISTRADOR.md"><b>Guia do administrador</b><span>Instalar em escala, atualizações, operação e solução de problemas.</span></a>
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/ADMINISTRADOR.md"><b>Administrador</b><span>Instalar em escala, atualizações, operação e solução de problemas.</span></a>
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/ARQUITETURA.md"><b>Por baixo do capô</b><span>Disco, boot, snapshots, rede das caixas e atualização, em detalhe.</span></a>
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CHANGELOG.md"><b>Notas de versão</b><span>O que entrou, mudou e saiu em cada versão.</span></a>
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md"><b>O que foi testado</b><span>A lista honesta: o que passou, o que falta e os limites.</span></a>
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CONTRIBUTING.md"><b>Como colaborar</b><span>Corrigir um bug ou propor um recurso.</span></a>
 </div></div></section>
 
-<section id="baixar"><div class="wrap two">
-<div><h2>Baixar e instalar</h2>
-<ol class="steps">
-<li>Baixe com o comando ao lado (ele junta as partes e confere o SHA-256), ou pegue os arquivos em <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Releases</a>.</li>
-<li>Grave em um pendrive (a ISO é híbrida: BIOS e UEFI, com Secure Boot).</li>
-<li>Inicie pelo pendrive. O sistema sobe em modo live e o instalador abre sozinho.</li>
-<li>Escolha disco, usuário e perfil: <b>SOC</b>, <b>Redes</b> ou <b>Sensor</b>.</li>
-</ol>
-<p class="sub" style="margin-top:14px">Requisitos: x86-64, 4 GB de RAM, 30 GB de disco.</p>
-<p><button id="copiardl" type="button" class="btn pri" style="cursor:pointer">Copiar o comando de download</button></p></div>
-<pre id="dl"><span class="c"># baixar, juntar e conferir: copie e cole no terminal</span>
-curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
-  &amp;&amp; cat MilizOS-2.0-x86_64.iso.part-* &gt; MilizOS-2.0-x86_64.iso \
-  &amp;&amp; sha256sum -c MilizOS-2.0-x86_64.iso.sha256 &amp;&amp; rm MilizOS-2.0-x86_64.iso.part-*
-
-<span class="c"># gravar no pendrive (troque sdX pelo seu dispositivo)</span>
-sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX \
-        bs=4M status=progress oflag=sync
-
-<span class="c"># ou testar em máquina virtual</span>
-qemu-system-x86_64 -enable-kvm -m 4G -smp 4 \
-        -cdrom MilizOS-2.0-x86_64.iso</pre>
-</div></section>
-
-<section id="cafe"><div class="wrap"><div class="cafe">
-<div class="cup" aria-hidden="true">☕</div>
+<section class="alt" id="cafe"><div class="wrap"><div class="cafe">
 <h2>Doe um café</h2>
-<p class="sub" style="margin:0 auto">O MilizOS é feito por uma pessoa só, no tempo livre, e é gratuito. Se ele te economizou uma noite de trabalho, um café ajuda a próxima versão a sair.</p>
-<div class="pix"><code id="pix">danielmaraboo@gmail.com</code><button id="copiar" type="button">Copiar chave Pix</button></div>
-<p class="sub" style="margin:0 auto;font-size:14px">Pix, chave do tipo e-mail. Qualquer valor. Obrigado.</p>
+<p class="sub">O MilizOS é feito por uma pessoa só, no tempo livre, e é gratuito. Se ele te economizou uma noite de trabalho, um café ajuda a próxima versão a sair.</p>
+<div class="pix"><code id="pix">danielmaraboo@gmail.com</code><button type="button" data-copy="pix">Copiar chave Pix</button></div>
+<p class="sub" style="font-size:14px">Pix, chave do tipo e-mail. Qualquer valor. Obrigado.</p>
 </div></div></section>
 
 <footer><div class="wrap">
-<p><b>MilizOS</b> foi criado por <b>Daniel Pereira da Silva</b> · <a href="https://www.linkedin.com/in/danielpereira-linux/">linkedin.com/in/danielpereira-linux</a></p>
-<p>Software livre. Baseado em Fedora Linux; o MilizOS não é afiliado ao Projeto Fedora nem à Red Hat. Use as ferramentas de segurança apenas em sistemas que você tem autorização para testar.</p>
+<p><b>MilizOS</b> foi criado por <b>Daniel Pereira da Silva</b> · <a href="https://www.linkedin.com/in/danielpereira-linux/">linkedin.com/in/danielpereira-linux</a> · <a href="https://github.com/Daniel-Pereira-Linux/milizos">github.com/Daniel-Pereira-Linux/milizos</a></p>
+<p>Software livre: código sob GPL-3.0-or-later, arte sob CC-BY-SA-4.0. Baseado em Fedora Linux; o MilizOS não é afiliado ao Projeto Fedora nem à Red Hat. Use as ferramentas de segurança apenas em sistemas que você tem autorização para testar.</p>
 </div></footer>
 
 <script>
-document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
-document.querySelectorAll('.tabs button').forEach(o=>o.setAttribute('aria-selected',o===b));
-document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.p))}));
-document.getElementById('copiardl').addEventListener('click',e=>{const t=document.getElementById('dl').textContent.split('\n').slice(1,4).join('\n');navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>{e.target.textContent='Copiado';setTimeout(()=>e.target.textContent='Copiar o comando de download',1800)})});
-document.getElementById('copiar').addEventListener('click',e=>{const t=document.getElementById('pix').textContent;
-(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{e.target.textContent='Copiado';setTimeout(()=>e.target.textContent='Copiar chave Pix',1800)}).catch(()=>{const r=document.createRange();r.selectNode(document.getElementById('pix'));getSelection().removeAllRanges();getSelection().addRange(r)})});
-</script>
-<script>
-(()=>{const c=document.getElementById('mesh'),x=c.getContext('2d');let w,h,pts=[];
-const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
-function size(){const r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);w=r.width;h=r.height;c.width=w*d;c.height=h*d;x.setTransform(d,0,0,d,0,0);
-const n=Math.min(90,Math.round(w*h/14000));pts=Array.from({length:n},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}))}
-function draw(){x.clearRect(0,0,w,h);for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1}
-for(let i=0;i<pts.length;i++){const a=pts[i];for(let j=i+1;j<pts.length;j++){const b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<130){x.strokeStyle=`rgba(45,127,249,${.22*(1-d/130)})`;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()}}
-x.fillStyle='rgba(0,240,200,.55)';x.beginPath();x.arc(a.x,a.y,1.6,0,7);x.fill()}
-if(!still)requestAnimationFrame(draw)}
-addEventListener('resize',size);size();draw()})();
+/* abas */
+document.querySelectorAll('[data-tabs]').forEach(g=>{
+  const bs=g.querySelectorAll('[role=tab]'),ps=g.querySelectorAll('.pane');
+  bs.forEach(b=>b.addEventListener('click',()=>{
+    bs.forEach(o=>o.setAttribute('aria-selected',o===b));
+    ps.forEach(p=>p.classList.toggle('on',p.id===b.dataset.p));
+  }));
+});
+
+/* copiar */
+document.querySelectorAll('[data-copy]').forEach(b=>{
+  const rot=b.textContent;
+  b.addEventListener('click',()=>{
+    const el=document.getElementById(b.dataset.copy),t=el.textContent.trim();
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{
+      b.textContent='Copiado';setTimeout(()=>b.textContent=rot,1800);
+    }).catch(()=>{
+      const r=document.createRange();r.selectNodeContents(el);
+      const s=getSelection();s.removeAllRanges();s.addRange(r);
+    });
+  });
+});
+
+/* demonstração da linha do tempo: voltar nunca apaga, só acrescenta */
+(()=>{
+  const KIND={install:'instalação',boot:'inicialização',dnf:'pacotes',hora:'automático',manual:'manual',antes:'antes de voltar'};
+  const log=document.getElementById('demo-log'),msg=document.getElementById('demo-msg'),head=document.getElementById('demo-head');
+  const cell={zeek:document.getElementById('s-zeek'),ssh:document.getElementById('s-ssh'),rel:document.getElementById('s-rel')};
+  const TXT={
+    zeek:{0:'não instalado',1:'instalado'},
+    ssh:{0:'original',1:'editado: PermitRootLogin yes'},
+    rel:{0:'ainda não existia',1:'existe',2:'apagado'}
+  };
+  let pts,now,min,same,fresh;
+  function reset(){
+    pts=[
+      {id:1,k:'install',d:'instalação limpa',t:'08:40',s:{zeek:0,ssh:0,rel:0}},
+      {id:2,k:'boot',d:'primeira inicialização do dia',t:'09:00',s:{zeek:0,ssh:0,rel:1}},
+      {id:3,k:'dnf',d:'antes de: dnf install zeek',t:'10:12',s:{zeek:0,ssh:0,rel:1}},
+      {id:4,k:'hora',d:'ponto de hora em hora',t:'11:00',s:{zeek:1,ssh:0,rel:1}},
+      {id:5,k:'manual',d:'antes de mexer no sshd_config',t:'11:40',s:{zeek:1,ssh:0,rel:1}},
+      {id:6,k:'hora',d:'ponto de hora em hora',t:'12:00',s:{zeek:1,ssh:1,rel:1}}
+    ];
+    now={zeek:1,ssh:1,rel:2};min=25;same=0;fresh=0;
+    msg.innerHTML='<b>Experimente:</b> o relatório foi apagado e o <code>sshd_config</code> foi alterado. Clique em <b>Voltar</b> no ponto #5 e veja a máquina mudar.';
+    draw({});
+  }
+  function hora(){const h=12+Math.floor(min/60),m=min%60;return (h%24<10?'0':'')+h%24+':'+(m<10?'0':'')+m}
+  function draw(changed){
+    for(const k in cell){
+      const el=cell[k];el.textContent=TXT[k][now[k]];
+      el.className=(k==='rel'&&now[k]===2)||(k==='ssh'&&now[k]===1)?'bad':'';
+      if(changed[k]){void el.offsetWidth;el.classList.add('chg')}
+    }
+    head.textContent=same?'· igual ao ponto #'+same:'· com mudanças desde o ponto #6';
+    log.textContent='';
+    const li=document.createElement('li');li.className='now';
+    li.innerHTML='<span class="dot"></span><div class="t"><b>agora</b><small>hoje, '+hora()+' · estado em uso</small></div><span class="here">você está aqui</span>';
+    log.appendChild(li);
+    for(let i=pts.length-1;i>=0;i--){
+      const p=pts[i],e=document.createElement('li');
+      e.className='k-'+p.k+(p.id===fresh?' new':'');
+      const dot=document.createElement('span');dot.className='dot';
+      const t=document.createElement('div');t.className='t';
+      const b=document.createElement('b');b.textContent=p.d;
+      const s=document.createElement('small');s.innerHTML='#'+p.id+' · hoje, '+p.t+' · <u>'+KIND[p.k]+'</u>';
+      t.append(b,s);
+      const bt=document.createElement('button');bt.type='button';bt.textContent='Voltar';
+      bt.setAttribute('aria-label','Voltar a máquina para o ponto #'+p.id+', '+p.d);
+      bt.addEventListener('click',()=>voltar(p.id));
+      e.append(dot,t,bt);log.appendChild(e);
+    }
+    log.scrollTop=0;
+  }
+  function voltar(id){
+    const alvo=pts.find(p=>p.id===id);if(!alvo)return;
+    const novo=pts[pts.length-1].id+1;
+    pts.push({id:novo,k:'antes',d:'máquina antes de voltar ao ponto #'+id,t:hora(),s:{...now}});
+    const antes=pts.filter(p=>p.k==='antes');
+    if(antes.length>4)pts.splice(pts.indexOf(antes[0]),1);
+    const changed={};for(const k in now)changed[k]=now[k]!==alvo.s[k];
+    now={...alvo.s};min+=3;same=id;fresh=novo;
+    msg.innerHTML='A máquina voltou ao <b>ponto #'+id+'</b>. Nada foi apagado: o estado anterior virou o <b>ponto #'+novo+'</b>. Arrependeu? Volte para ele. <span style="color:var(--dim)">No sistema real, a volta da máquina inteira vale ao reiniciar.</span>';
+    draw(changed);
+  }
+  document.getElementById('demo-reset').addEventListener('click',reset);
+  reset();
+})();
 </script>
 </body>
 </html>

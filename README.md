@@ -7,6 +7,7 @@
 <a href="docs/MANUAL.md">Manual</a> ·
 <a href="docs/ARQUITETURA.md">Por baixo do capô</a> ·
 <a href="docs/ADMINISTRADOR.md">Administrador</a> ·
+<a href="CHANGELOG.md">O que mudou</a> ·
 <a href="CONTRIBUTING.md">Como colaborar</a>
 </p>
 
@@ -18,12 +19,13 @@ resposta a incidentes e o engenheiro de redes.
 
 A ideia central da versão 2.0: **um sistema totalmente gravável em que tudo tem história**.
 Você pode mexer em qualquer coisa, e qualquer coisa volta a uma versão anterior, como em um
-repositório git. Sem comandos próprios para decorar: as ferramentas são as originais.
+repositório git: na sua máquina, tudo é commit. Sem comandos próprios para decorar: as
+ferramentas são as originais. O que mudou desde a 1.0 está no [CHANGELOG](CHANGELOG.md).
 
 | | |
 |---|---|
 | Base | Fedora 44 (x86-64), GNOME, SELinux em *Enforcing* |
-| ISO | 3,2 GB, híbrida: BIOS e UEFI, com Secure Boot |
+| ISO | 3,3 GB, híbrida: BIOS e UEFI, com Secure Boot |
 | Memória | roda em **4 GB de RAM** (swap comprimido em zram) |
 | Instalador | próprio, gráfico e desassistido; btrfs, xfs ou ext4; LUKS2 opcional |
 | Perfis | SOC, Engenharia de Redes, Sensor (IDS sem interface gráfica) |

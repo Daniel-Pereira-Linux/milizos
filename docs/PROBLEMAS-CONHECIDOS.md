@@ -34,7 +34,7 @@
 - `/boot` e a partição EFI não entram nos pontos (o kernel de cada ponto, sim).
 - O modo Ponte da Pandora compartilha a rede do host; a caixa não ganha IP próprio.
 - A linha do kernel do sistema instalado repete `rootflags=subvol=root` (inofensivo).
-- A ISO tem 3,2 GB, acima do limite de 2 GB por arquivo do GitHub Releases (vai em partes).
+- A ISO tem 3,3 GB, acima do limite de 2 GB por arquivo do GitHub Releases (vai em partes).
 
 ## Não testado
 
