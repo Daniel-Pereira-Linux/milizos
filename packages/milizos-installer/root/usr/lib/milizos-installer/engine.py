@@ -184,15 +184,26 @@ def validate(cfg):
     if cfg.get("encrypt") and len(cfg.get("passphrase") or "") < 8:
         errs.append("A senha de criptografia precisa de ao menos 8 caracteres")
     u = cfg.get("user") or {}
-    if not re.fullmatch(r"[a-z_][a-z0-9_-]{0,30}", u.get("name", "")):
+    cl = cfg.get("clone")
+    if cl:
+        # clonagem: o sistema vem de um ponto da Heloisa guardado em outro disco; usuarios e perfil vem junto
+        if cfg.get("filesystem", "btrfs") != "btrfs":
+            errs.append("A clonagem exige btrfs")
+        if not str(cl.get("dir") or "").strip("/") or not str(cl.get("point", "")).isdigit():
+            errs.append("Clonagem: informe a pasta da cópia e o número do ponto")
+        if cl.get("device") and not os.path.exists(cl["device"]):
+            errs.append(f"Clonagem: dispositivo inexistente: {cl['device']!r}")
+    if cl and not u:
+        pass
+    elif not re.fullmatch(r"[a-z_][a-z0-9_-]{0,30}", u.get("name", "")):
         errs.append("Nome de usuário inválido (use minúsculas, números, - e _)")
     elif u["name"] in ("root", "liveuser", "bin", "daemon", "adm", "nobody"):
         errs.append("Nome de usuário reservado")
-    if not u.get("password") and not str(u.get("password_hash", "")).startswith("$"):
+    if (u or not cl) and not u.get("password") and not str(u.get("password_hash", "")).startswith("$"):
         errs.append("Defina uma senha para o usuário")
     if not re.fullmatch(r"[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?", cfg.get("hostname", "")):
         errs.append("Nome da máquina inválido")
-    if cfg.get("profile", "soc") not in PROFILES:
+    if cfg.get("profile", "soc") not in PROFILES and not (cl and "profile" not in cfg):
         errs.append("Perfil desconhecido")
     if cfg.get("locale", "pt_BR.UTF-8") not in LOCALES:
         errs.append("Idioma desconhecido")
@@ -230,9 +241,26 @@ class Installer:
         emit(type="done")
 
     # ---------------------------------------------------------- etapas
+    def _umount_everywhere(self):
+        """Uma tentativa anterior pode ter deixado o destino montado em outros namespaces de montagem
+        (servicos com namespace proprio): la o disco continua 'em uso' e o mkfs falha."""
+        seen = set()
+        for pid in filter(str.isdigit, os.listdir("/proc")):
+            try:
+                ns = os.readlink(f"/proc/{pid}/ns/mnt")
+                if ns in seen:
+                    continue
+                seen.add(ns)
+                if f" {TARGET} " not in open(f"/proc/{pid}/mountinfo").read():
+                    continue
+            except OSError:
+                continue
+            run(["nsenter", "-t", pid, "-m", "umount", "-R", "-l", TARGET], check=False)
+
     def step_prepare(self):
         run(["swapoff", "-a"], check=False)
         run(["umount", "-R", TARGET], check=False)
+        self._umount_everywhere()
         # desmonta qualquer particao do disco alvo
         mp = out(["lsblk", "-ln", "-o", "MOUNTPOINT", self.disk], check=False)
         for m in sorted(filter(None, mp.splitlines()), reverse=True):
@@ -321,7 +349,26 @@ class Installer:
         if not all(self.uuids.get(k) for k in ("root", "boot", "esp")):
             raise InstallError("Não foi possível ler os UUIDs das partições")
 
+    def _clone_dir(self):
+        """Pasta do ponto a clonar (monta o disco da copia, somente leitura, se preciso)."""
+        cl = self.cfg["clone"]
+        base = "/"
+        if cl.get("device"):
+            base = "/run/milizos-clone"
+            os.makedirs(base, exist_ok=True)
+            if not os.path.ismount(base):
+                run(["mount", "-o", "ro,subvolid=5", cl["device"], base])
+        d = os.path.join(base, str(cl["dir"]).strip("/"), str(int(cl["point"])))
+        if not os.path.isdir(f"{d}/root/usr"):
+            raise InstallError(f"O ponto #{cl['point']} não foi encontrado em {cl['dir']}.")
+        return d
+
     def _source(self):
+        if self.cfg.get("clone"):
+            return self._clone_dir() + "/root"
+        return self._live_source()
+
+    def _live_source(self):
         src = os.environ.get("MILIZOS_SOURCE")
         if src:
             return src
@@ -367,6 +414,28 @@ class Installer:
             log(err.strip())
         if rc not in (0, 24):
             raise InstallError("Falha ao copiar o sistema (rsync %d)\n%s" % (rc, err.strip()[-400:]))
+        cl = self.cfg.get("clone")
+        if cl:
+            d = self._clone_dir()
+            if cl.get("home", True) and os.path.isdir(f"{d}/home"):
+                log("clonagem: copiando os arquivos pessoais")
+                run(["rsync", "-aHAXS", "--numeric-ids", f"{d}/home/", f"{TARGET}/home/"])
+            # o que e da maquina de origem e nao pode se repetir na copia
+            for f in os.listdir(f"{TARGET}/etc/ssh") if os.path.isdir(f"{TARGET}/etc/ssh") else []:
+                if f.startswith("ssh_host_"):
+                    os.unlink(f"{TARGET}/etc/ssh/{f}")
+            for f in ("/etc/crypttab", "/var/lib/systemd/random-seed", "/var/lib/dbus/machine-id"):
+                if os.path.lexists(TARGET + f):
+                    os.unlink(TARGET + f)
+            for sub in ("boot/loader/entries",):
+                e = f"{TARGET}/{sub}"
+                for f in os.listdir(e) if os.path.isdir(e) else []:
+                    os.unlink(f"{e}/{f}")
+            # um ponto nao guarda o /boot (e outra particao): a base dele e a ESP vem da midia
+            src = self._live_source()
+            run(["rsync", "-aHAX", "--numeric-ids", "--exclude=/efi", "--exclude=/initramfs-*", "--exclude=/vmlinuz-*",
+                 "--exclude=/loader/entries/*", "--exclude=/checkpoints", "--exclude=/branches",
+                 f"{src}/boot/", f"{TARGET}/boot/"])
         # ESP (vfat): copia simples, sem atributos
         efi_src = f"{src}/boot/efi"
         if os.path.isdir(efi_src):
@@ -395,23 +464,27 @@ class Installer:
             self._write("/etc/crypttab", f"{self.luks_name} UUID={u['luks']} none discard\n", 0o600)
 
         self._write("/etc/hostname", c.get("hostname", "milizos") + "\n")
-        self._write("/etc/locale.conf", f"LANG={c.get('locale', 'pt_BR.UTF-8')}\n")
-        km = next((k for k in KEYMAPS if k[0] == c.get("keymap", "br")), KEYMAPS[0])
-        self._write("/etc/vconsole.conf", f'KEYMAP="{km[4]}"\nFONT="eurlatgr"\n'
-                    f'XKBLAYOUT="{km[2]}"\n' + (f'XKBVARIANT="{km[3]}"\n' if km[3] else ""))
-        x11 = ('Section "InputClass"\n        Identifier "system-keyboard"\n'
-               '        MatchIsKeyboard "on"\n'
-               f'        Option "XkbLayout" "{km[2]}"\n')
-        if km[3]:
-            x11 += f'        Option "XkbVariant" "{km[3]}"\n'
-        x11 += 'EndSection\n'
-        os.makedirs(f"{TARGET}/etc/X11/xorg.conf.d", exist_ok=True)
-        self._write("/etc/X11/xorg.conf.d/00-keyboard.conf", x11)
-        tz = c.get("timezone", "America/Sao_Paulo")
-        lt = f"{TARGET}/etc/localtime"
-        if os.path.lexists(lt):
-            os.unlink(lt)
-        os.symlink(f"../usr/share/zoneinfo/{tz}", lt)
+        keep = bool(c.get("clone"))      # clonagem: idioma, teclado e fuso sao os da origem, salvo pedido explicito
+        if not keep or "locale" in c:
+            self._write("/etc/locale.conf", f"LANG={c.get('locale', 'pt_BR.UTF-8')}\n")
+        if not keep or "keymap" in c:
+            km = next((k for k in KEYMAPS if k[0] == c.get("keymap", "br")), KEYMAPS[0])
+            self._write("/etc/vconsole.conf", f'KEYMAP="{km[4]}"\nFONT="eurlatgr"\n'
+                        f'XKBLAYOUT="{km[2]}"\n' + (f'XKBVARIANT="{km[3]}"\n' if km[3] else ""))
+            x11 = ('Section "InputClass"\n        Identifier "system-keyboard"\n'
+                   '        MatchIsKeyboard "on"\n'
+                   f'        Option "XkbLayout" "{km[2]}"\n')
+            if km[3]:
+                x11 += f'        Option "XkbVariant" "{km[3]}"\n'
+            x11 += 'EndSection\n'
+            os.makedirs(f"{TARGET}/etc/X11/xorg.conf.d", exist_ok=True)
+            self._write("/etc/X11/xorg.conf.d/00-keyboard.conf", x11)
+        if not keep or "timezone" in c:
+            tz = c.get("timezone", "America/Sao_Paulo")
+            lt = f"{TARGET}/etc/localtime"
+            if os.path.lexists(lt):
+                os.unlink(lt)
+            os.symlink(f"../usr/share/zoneinfo/{tz}", lt)
 
         self._mount_api()
         mid = f"{TARGET}/etc/machine-id"
@@ -419,6 +492,8 @@ class Installer:
             os.unlink(mid)
         run(["systemd-machine-id-setup"], chroot=True)
 
+        if c.get("clone") and "profile" not in c:
+            return          # clonagem: servicos e perfil sao os da maquina de origem
         prof = PROFILES[c.get("profile", "soc")]
         self._write("/etc/milizos-profile", c.get("profile", "soc") + "\n")
         run(["systemctl", "set-default", prof["target"]], chroot=True, check=False)
@@ -429,7 +504,18 @@ class Installer:
 
     def step_users(self):
         c = self.cfg
-        u = c["user"]
+        u = c.get("user") or {}
+        if c.get("clone"):
+            # clonagem: os usuarios ja vieram no ponto; so troca a senha se uma foi pedida
+            names = {l.split(":")[0] for l in open(f"{TARGET}/etc/passwd")}
+            if not u:
+                return
+            if u["name"] in names:
+                if u.get("password_hash"):
+                    run(["chpasswd", "-e"], input=f"{u['name']}:{u['password_hash']}\n", chroot=True)
+                else:
+                    run(["chpasswd"], input=f"{u['name']}:{u['password']}\n", chroot=True)
+                return
         prof = PROFILES[c.get("profile", "soc")]
         existing = {l.split(":")[0] for l in open(f"{TARGET}/etc/group")}
         groups = [g for g in prof["groups"] if g in existing]
@@ -541,7 +627,10 @@ class Installer:
         eng = "/usr/libexec/milizos/heloisa-engine"
         if self.fs == "btrfs" and os.path.exists(TARGET + eng):
             # ponto de retorno "de fabrica": sempre da para voltar a instalacao limpa
-            run([eng, "create", json.dumps({"kind": "install", "desc": "instalação limpa"})], chroot=True,
+            cl = self.cfg.get("clone")
+            desc = (f"clone de {os.path.basename(str(cl['dir']).rstrip('/'))[8:] or 'outra máquina'}, ponto #{cl['point']}"
+                    if cl else "instalação limpa")
+            run([eng, "create", json.dumps({"kind": "install", "desc": desc})], chroot=True,
                 check=False, env={"HELOISA_ROOTDEV": self.rootdev, "HELOISA_BOOTUUID": self.uuids["boot"]})
         try:
             os.makedirs(f"{TARGET}/var/log", exist_ok=True)
@@ -573,6 +662,9 @@ class Installer:
         run(["umount", "-R", TARGET], check=False)
         if os.path.ismount(TARGET):
             run(["umount", "-Rl", TARGET], check=False)
+        self._umount_everywhere()
+        if os.path.ismount("/run/milizos-clone"):
+            run(["umount", "/run/milizos-clone"], check=False)
         if self.luks_name:
             run(["cryptsetup", "close", self.luks_name], check=False)
 

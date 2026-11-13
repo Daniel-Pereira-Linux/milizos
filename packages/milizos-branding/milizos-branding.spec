@@ -1,5 +1,5 @@
 Name:           milizos-branding
-Version:        2.0
+Version:        2.1.0
 Release:        1
 Summary:        Identidade visual do MilizOS
 License:        CC-BY-SA-4.0

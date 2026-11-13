@@ -3,7 +3,7 @@
 <p align="center"><b>A distribuição Linux para quem defende: SOC, Blue Team e Engenharia de Redes.</b></p>
 <p align="center">
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Baixar a ISO</a> ·
-<a href="https://daniel-pereira-linux.github.io/milizos/">Site</a> ·
+<a href="https://milizos.com.br/">Site</a> ·
 <a href="docs/MANUAL.md">Manual</a> ·
 <a href="docs/ARQUITETURA.md">Por baixo do capô</a> ·
 <a href="docs/ADMINISTRADOR.md">Administrador</a> ·
@@ -17,10 +17,11 @@ O Kali é feito para quem ataca. O **MilizOS** é feito para quem defende: uma d
 baseada em Fedora, com instalador próprio, pensada para o analista de SOC, o time de
 resposta a incidentes e o engenheiro de redes.
 
-A ideia central da versão 2.0: **um sistema totalmente gravável em que tudo tem história**.
-Você pode mexer em qualquer coisa, e qualquer coisa volta a uma versão anterior, como em um
-repositório git: na sua máquina, tudo é commit. Sem comandos próprios para decorar: as
-ferramentas são as originais. O que mudou desde a 1.0 está no [CHANGELOG](CHANGELOG.md).
+A ideia central: **um sistema totalmente gravável em que tudo tem história**. Você pode
+mexer em qualquer coisa, e qualquer coisa volta a uma versão anterior, como em um
+repositório git: na sua máquina, tudo é commit. A versão 2.1.0 completa a comparação com
+ramos, bisect, blame, push, clone e pontos assinados. Sem comandos próprios para decorar:
+as ferramentas são as originais. O que mudou em cada versão está no [CHANGELOG](CHANGELOG.md).
 
 | | |
 |---|---|
@@ -42,11 +43,31 @@ Um aplicativo gráfico que volta **qualquer coisa** a uma versão anterior.
 - **Qualquer arquivo ou pasta.** Navegue por todo o sistema, veja todas as versões que um
   caminho já teve, compare com um diff colorido e traga de volta: no lugar ou como cópia.
   Inclusive o que foi apagado.
+- **Sem reiniciar.** Um arquivo ou pasta volta na hora. Se um serviço está escrevendo
+  nele (um banco de dados, por exemplo), a Heloisa avisa e oferece parar, voltar e religar.
 - **Voltar nunca apaga.** Antes de qualquer volta, o estado atual vira um ponto. Dá para
   desfazer o desfazer.
 - **Pelo menu de boot.** O GRUB lista os 15 pontos mais recentes, cada um com o seu kernel.
 - **Resgate pela mídia.** Se nem o GRUB sobrou, a Heloisa no pendrive restaura um ponto e
   reconstrói o boot.
+
+Novo na 2.1.0, o resto do git para a máquina:
+
+| No git | Na Heloisa |
+|---|---|
+| mensagem de commit | cada ponto traz um **resumo automático** do que mudou |
+| `git blame` | **Quando mudou?** mostra entre quais pontos um arquivo mudou |
+| `git bisect` | **Procurar o que quebrou** acha o ponto em que o problema entrou |
+| `git branch` | **Ramos da máquina**: sistemas paralelos, também no menu de boot |
+| `git worktree` | **Experimentar um ponto** em um terminal, sem voltar nada |
+| `git push` | **Enviar os pontos** para outro disco ou servidor por SSH |
+| `git clone` | **Clonar a máquina** pela mídia, a partir de um ponto enviado |
+| `git tag -s` | **Selar um ponto**: hash de tudo, assinado |
+
+E um **alarme de ransomware**: reescrita em massa dos arquivos pessoais gera aviso e
+protege o último ponto bom.
+
+![Heloisa avisando que um serviço está escrevendo no arquivo](docs/assets/heloisa-arquivo-em-uso.png)
 
 Nada é formato próprio: os pontos são snapshots btrfs, montados somente leitura em
 `/.heloisa`, legíveis com `ls`, `diff` e `cp`.
@@ -61,8 +82,10 @@ dentro do MilizOS, em conteiners sem root.
 - **Dois modos de rede.** *Isolada*: só sai para a internet; rede local, host e endereços
   privados são recusados, e a pasta pessoal é separada. *Ponte*: usa a rede do host, para
   ferramentas que precisam enxergar a rede.
-- **Destruiu, sumiu.** Apagar a caixa leva os programas, os atalhos e a pasta dela. O
-  sistema base não é tocado.
+- **Pontos da caixa.** Congele a caixa antes de uma mudança arriscada e volte em segundos,
+  programas e pasta pessoal.
+- **Destruiu, sumiu.** Apagar a caixa leva os programas, os atalhos, os pontos e a pasta
+  dela. O sistema base não é tocado.
 
 As caixas são podman comum: `podman ps` e `distrobox enter` funcionam.
 
@@ -104,13 +127,13 @@ Suite, por exemplo) roda em uma caixa Kali da Pandora.
 1. Baixe a ISO em [Releases](https://github.com/Daniel-Pereira-Linux/milizos/releases/latest).
    A ISO passa do limite de 2 GB por arquivo do GitHub, entao vai em duas partes. Junte e confira:
    ```bash
-   curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
-     && cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso \
-     && sha256sum -c MilizOS-2.0-x86_64.iso.sha256 && rm MilizOS-2.0-x86_64.iso.part-*
+   curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.1.0/MilizOS-2.1.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.1.0/MilizOS-2.1.0-x86_64.iso.sha256" \
+     && cat MilizOS-2.1.0-x86_64.iso.part-* > MilizOS-2.1.0-x86_64.iso \
+     && sha256sum -c MilizOS-2.1.0-x86_64.iso.sha256 && rm MilizOS-2.1.0-x86_64.iso.part-*
    ```
 2. Grave em um pendrive:
    ```bash
-   sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+   sudo dd if=MilizOS-2.1.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
    ```
 3. Inicie pelo pendrive. O instalador abre sozinho no modo live.
 
@@ -125,8 +148,9 @@ O [guia de contribuição](CONTRIBUTING.md) tem a receita de cada um.
 ## O que foi testado
 
 Testado em QEMU/KVM com 4 GB de RAM: boot live, instalação em btrfs, a Heloisa de ponta a
-ponta (pontos, voltar arquivo, pasta e sistema, volta pelo GRUB) e uma caixa isolada da
-Pandora com atalho automático. A lista completa, com o que **ainda não** foi testado, está
+ponta (pontos, voltar arquivo, pasta e sistema, volta pelo GRUB, ramos, busca do que
+quebrou, envio para outro disco, clone, selo e alarme) e uma caixa isolada da Pandora com
+atalho automático e pontos. A lista completa, com o que **ainda não** foi testado, está
 em [docs/PROBLEMAS-CONHECIDOS.md](docs/PROBLEMAS-CONHECIDOS.md). Não foi testado em hardware real.
 
 ## Licença e avisos
@@ -145,5 +169,6 @@ O MilizOS é feito por uma pessoa só, no tempo livre. Se ele te ajudou, pague u
 
 ## Autor
 
-Criado por **Daniel Pereira da Silva** ·
+Criado por **Daniel Pereira da Silva**, mantenedor da documentação em português do kernel
+Linux ·
 [linkedin.com/in/danielpereira-linux](https://www.linkedin.com/in/danielpereira-linux/)

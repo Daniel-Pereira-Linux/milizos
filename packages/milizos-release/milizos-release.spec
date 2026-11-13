@@ -1,5 +1,5 @@
 Name:           milizos-release
-Version:        2.0
+Version:        2.1.0
 Release:        1
 Summary:        Arquivos de release do MilizOS
 License:        MIT

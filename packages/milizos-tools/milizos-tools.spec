@@ -1,5 +1,5 @@
 Name:           milizos-tools
-Version:        2.0
+Version:        2.1.0
 Release:        1
 Summary:        Heloisa (maquina do tempo), Pandora (caixas Linux) e menu de ferramentas do MilizOS
 License:        GPL-3.0-or-later
@@ -8,6 +8,7 @@ BuildArch:      noarch
 Requires:       python3 milizos-installer dconf zsh
 Requires:       btrfs-progs libdnf5-plugin-actions diffutils rsync polkit
 Requires:       python3-gobject gtk4 libadwaita podman distrobox nftables util-linux
+Requires:       systemd-container openssl openssh-clients libnotify procps-ng psmisc
 
 %description
 Heloisa: linha do tempo da maquina inteira em snapshots btrfs, com volta de

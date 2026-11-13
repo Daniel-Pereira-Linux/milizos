@@ -25,7 +25,12 @@ CSS = """
 .hel-mono { font-family: 'JetBrains Mono', monospace; font-size: 10.5pt; }
 .hel-pill { padding: 2px 9px; border-radius: 99px; background: alpha(@accent_bg_color, .18); font-size: 9pt; font-weight: 600; }
 .hel-same { opacity: .45; }
+.hel-warn { background: alpha(#f5a623, .25); }
+.hel-bad { background: alpha(#e5484d, .28); }
+.hel-bar { padding: 8px 14px; background: alpha(@accent_bg_color, .16); }
+.hel-bar.alert { background: alpha(#e5484d, .22); }
 """
+STATE_DIR = "/.heloisa/.state"
 
 
 def when(ts):
@@ -110,11 +115,20 @@ class Window(Adw.ApplicationWindow):
         self.btn_new = Gtk.Button(label="Criar ponto agora", css_classes=["suggested-action"])
         self.btn_new.connect("clicked", self.on_create)
         hb.pack_end(self.btn_new)
+        mm = Gio.Menu()
+        mm.append("Ramos da máquina…", "win.branches")
+        mm.append("Enviar pontos para outro disco…", "win.push")
+        mm.append("Procurar o que quebrou…", "win.bisect")
+        self.btn_menu = Gtk.MenuButton(icon_name="open-menu-symbolic", menu_model=mm, tooltip_text="Mais")
+        hb.pack_end(self.btn_menu)
         tv.add_top_bar(hb)
         self.banner = Adw.Banner(title="Volta no tempo aplicada. Reinicie o computador para concluir.",
                                  button_label="Reiniciar agora")
         self.banner.connect("button-clicked", lambda *_: self.eng.call("reboot", lambda *_a: None))
         tv.add_top_bar(self.banner)
+        self.bars = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        tv.add_top_bar(self.bars)
+        self.st = {}
 
         self.root = Gtk.Stack()
         tv.set_content(self.root)
@@ -155,6 +169,7 @@ class Window(Adw.ApplicationWindow):
             self.status.set_child(None)
         self.root.set_visible_child_name("status")
         self.btn_new.set_sensitive(False)
+        self.btn_menu.set_sensitive(False)
 
     def refresh(self, *_a):
         self.eng.call("status", self.on_status)
@@ -168,9 +183,13 @@ class Window(Adw.ApplicationWindow):
             return self.show_status("drive-harddisk-symbolic", "Sem linha do tempo neste sistema",
                                     "A Heloisa precisa do MilizOS instalado em btrfs, que é o padrão do instalador.")
         self.points = st["points"]
-        self.banner.set_revealed(st["pending"])
-        self.btn_new.set_sensitive(not st["pending"])
+        self.st = st
+        bis = st.get("bisect") or {}
+        self.banner.set_revealed(st["pending"] and not bis.get("active"))
+        self.btn_new.set_sensitive(not st["pending"] and not bis.get("active"))
+        self.fill_bars(st)
         self.root.set_visible_child_name("main")
+        self.btn_menu.set_sensitive(True)
         self.fill_timeline(st)
         self.fill_views()
         self.load_dir()
@@ -204,17 +223,33 @@ class Window(Adw.ApplicationWindow):
         if not self.points:
             self.tl_list.append(Adw.ActionRow(title="Ainda não há pontos", subtitle="Crie o primeiro com o botão acima."))
         for p in reversed(self.points):
-            row = Adw.ActionRow(title=GLib.markup_escape_text(p["desc"]),
-                                subtitle=f"#{p['id']} · {when(p['time'])}" + (" · no menu de boot" if p["bootable"] else ""))
+            sub = f"#{p['id']} · {when(p['time'])}" + (" · no menu de boot" if p["bootable"] else "")
+            if p.get("summary"):
+                sub += "\n" + GLib.markup_escape_text(p["summary"])
+            row = Adw.ActionRow(title=GLib.markup_escape_text(p["desc"]), subtitle=sub, subtitle_lines=3)
             row.add_prefix(Gtk.Image.new_from_icon_name(KIND_ICON.get(p["kind"], "bookmark-new-symbolic")))
+            many = len(st.get("branches") or []) > 1
+            for txt, on, cls in ((f"ramo {p.get('branch')}", many, []), ("enviado", bool(p.get("pushed")), []),
+                                 ("selado", p.get("sealed"), ["hel-warn"]), ("protegido", p.get("protected"), ["hel-warn"])):
+                if on:
+                    row.add_suffix(Gtk.Label(label=txt, css_classes=["hel-pill"] + cls, valign=Gtk.Align.CENTER))
             row.add_suffix(Gtk.Label(label=p["label"], css_classes=["hel-pill"], valign=Gtk.Align.CENTER))
             b = Gtk.Button(label="Voltar para cá", valign=Gtk.Align.CENTER)
             b.connect("clicked", self.on_rollback, p)
             row.add_suffix(b)
             m = Gio.Menu()
-            m.append("O que mudou desde este ponto", f"win.changes({p['id']})")
-            m.append("Explorar os arquivos deste ponto", f"win.explore({p['id']})")
-            m.append("Excluir este ponto", f"win.delete({p['id']})")
+            s1, s2, s3 = Gio.Menu(), Gio.Menu(), Gio.Menu()
+            s1.append("Voltar só um arquivo ou pasta deste ponto", f"win.explore({p['id']})")
+            s1.append("O que mudou desde este ponto", f"win.changes({p['id']})")
+            s1.append("Experimentar este ponto sem voltar (terminal)", f"win.try({p['id']})")
+            s2.append("Criar um ramo a partir deste ponto…", f"win.branchfrom({p['id']})")
+            s2.append("Aqui funcionava: procurar o que quebrou…", f"win.bisectfrom({p['id']})")
+            s3.append("Verificar o selo" if p.get("sealed") else "Selar este ponto (hash e assinatura)", f"win.seal({p['id']})")
+            s3.append("Desproteger" if p.get("protected") else "Proteger (nunca apagar sozinho)",
+                      f"win.protect({p['id']})")
+            s3.append("Excluir este ponto", f"win.delete({p['id']})")
+            for sec in (s1, s2, s3):
+                m.append_section(None, sec)
             row.add_suffix(Gtk.MenuButton(icon_name="view-more-symbolic", menu_model=m, valign=Gtk.Align.CENTER,
                                           css_classes=["flat"]))
             self.tl_list.append(row)
@@ -339,7 +374,14 @@ class Window(Adw.ApplicationWindow):
         self.ver_title = Gtk.Label(xalign=0, ellipsize=Pango.EllipsizeMode.MIDDLE, css_classes=["title-3"])
         self.ver_sub = Gtk.Label(xalign=0, wrap=True, css_classes=["hel-dim"])
         right.append(self.ver_title)
-        right.append(self.ver_sub)
+        hrow = Gtk.Box(spacing=8)
+        self.ver_sub.set_hexpand(True)
+        hrow.append(self.ver_sub)
+        self.btn_blame = Gtk.Button(label="Quando mudou?", valign=Gtk.Align.START,
+                                    tooltip_text="Histórico do arquivo: em que ponto mudou, o que mudou e a causa provável")
+        self.btn_blame.connect("clicked", self.on_blame)
+        hrow.append(self.btn_blame)
+        right.append(hrow)
         sc2 = Gtk.ScrolledWindow(vexpand=True)
         self.vers = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"],
                                 valign=Gtk.Align.START, margin_bottom=14, margin_top=4, margin_start=2, margin_end=2)
@@ -450,6 +492,7 @@ class Window(Adw.ApplicationWindow):
             else:
                 state = "Pasta" if isdir else f"{human(cur['size'])} · modificado {when(datetime.datetime.fromtimestamp(cur['mtime']).strftime('%Y-%m-%d %H:%M'))}"
             extra = "" if isdir else f" · {len(distinct)} versões diferentes da seguinte"
+            self.btn_blame.set_visible(not isdir)
             self.ver_sub.set_label(f"{state} · presente em {len(alive)} de {len(r['versions'])} pontos{extra}")
             for v in r["versions"]:
                 if not v["exists"]:
@@ -477,6 +520,35 @@ class Window(Adw.ApplicationWindow):
                 self.vers.append(row)
         self.eng.call("versions", got, path=path)
 
+    def on_blame(self, *_a):
+        path = getattr(self, "cur_path", None)
+        if not path:
+            return
+
+        def show(ok, r):
+            if not ok:
+                return self.fail(r)
+            out = [f"━━ {r['path']}", f"   acompanhado em {r['points']} pontos"]
+            if r.get("owner"):
+                out.append(f"   pertence ao pacote {r['owner']}" +
+                           (" e está igual ao original do pacote" if r.get("pristine") else " e foi modificado em relação ao pacote"))
+            out.append("")
+            if not r["events"]:
+                out.append("Nenhuma mudança registrada entre os pontos existentes.")
+            for e in r["events"]:
+                a = f"ponto #{e['from']} ({when(e['from_time'])})"
+                b = f"ponto #{e['to']} ({when(e['to_time'])})" if e["to"] else "agora"
+                sign = {"criado": "+", "apagado": "-"}.get(e["what"], "~")
+                line = f"{sign} {e['what']} entre o {a} e {b}"
+                if e["added"] or e["removed"]:
+                    line += f"   [+{e['added']} linhas, -{e['removed']} linhas]"
+                out.append(line)
+                if e.get("cause"):
+                    out.append(f"    causa provável: {e['cause']}")
+            self.show_text(f"Quando mudou: {path}", "\n".join(out),
+                           "Para ver o conteúdo de cada mudança, use a lupa na versão correspondente.")
+        self.eng.call("blame", show, path=path)
+
     def on_diff(self, _b, path, cid):
         self.eng.call("diff", lambda ok, r: self.show_text(f"{path} — ponto #{cid} → agora", r["text"]) if ok else self.fail(r),
                       path=path, id=cid)
@@ -494,21 +566,66 @@ class Window(Adw.ApplicationWindow):
             self.eng.call("restore", after, path=path, id=v["id"], inplace=inplace)
         if not inplace:
             return go()
-        d = Adw.AlertDialog(heading="Voltar esta versão?",
-                            body=f"{path}\nficará exatamente como era no ponto #{v['id']} ({when(v['time'])}).\n\n"
-                                 "O estado de agora é guardado em um novo ponto antes.")
-        d.add_response("no", "Cancelar")
-        d.add_response("yes", "Voltar")
-        d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
-        d.connect("response", lambda _d, r: r == "yes" and go())
-        d.present(self)
 
-    def show_text(self, title, text, hint=None):
+        def ask(ok, pc):
+            if not ok:
+                return self.fail(pc)
+            body = (f"{path}\nficará exatamente como era no ponto #{v['id']} ({when(v['time'])}), agora mesmo, "
+                    "sem reiniciar.\n\nO estado de agora é guardado em um novo ponto antes.")
+            d = Adw.AlertDialog(heading="Voltar esta versão?")
+            d.add_response("no", "Cancelar")
+            ws, units = pc.get("writers") or [], pc.get("units") or []
+            if ws:
+                who = ", ".join(sorted({w["unit"] or f"{w['name']} (processo {w['pid']})" for w in ws}))
+                body += (f"\n\n⚠ Em uso agora: {who} está escrevendo "
+                         f"{'dentro desta pasta' if pc.get('isdir') else 'neste arquivo'}. Trocar o conteúdo por baixo de um "
+                         "programa em execução pode corromper os dados"
+                         + (" (" + pc["risky"] + ")." if pc.get("risky") else "."))
+                if units:
+                    body += "\n\nO caminho seguro: parar o serviço, voltar e religar."
+                    d.add_response("stop", "Parar, voltar e religar")
+                    d.set_response_appearance("stop", Adw.ResponseAppearance.SUGGESTED)
+                else:
+                    body += "\n\nFeche o programa antes, se puder."
+                d.add_response("yes", "Voltar mesmo assim")
+                d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
+            else:
+                if pc.get("risky"):
+                    body += (f"\n\n⚠ Cuidado: isto parece ser {pc['risky']}. Nenhum programa está escrevendo nele agora, "
+                             "mas confirme que o programa dono está parado"
+                             + (" e prefira voltar a pasta inteira do banco, não um arquivo solto." if not pc.get("isdir") else "."))
+                d.add_response("yes", "Voltar")
+                d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
+            d.set_body(body)
+
+            def resp(_d, r):
+                if r == "yes":
+                    go()
+                elif r == "stop":
+                    def after(ok2, res):
+                        if not ok2:
+                            return self.fail(res)
+                        msg = f"Voltou ao ponto #{v['id']}. Parado e religado: {', '.join(res['stopped']) or 'nada'}."
+                        if res.get("failed"):
+                            msg += f" NÃO religou: {', '.join(res['failed'])}."
+                        self.toast(msg)
+                        self.refresh()
+                    self.eng.call("restore", after, path=path, id=v["id"], inplace=True, stop=units)
+            d.connect("response", resp)
+            d.present(self)
+        self.eng.call("precheck", ask, path=path, id=v["id"])
+
+    def show_text(self, title, text, hint=None, wrap=False):
         w = Adw.Window(transient_for=self, modal=True, title=title, default_width=900, default_height=640)
+        esc = Gtk.ShortcutController()
+        esc.add_shortcut(Gtk.Shortcut.new(Gtk.ShortcutTrigger.parse_string("Escape"), Gtk.CallbackAction.new(lambda *_a: w.close() or True)))
+        w.add_controller(esc)
         tv = Adw.ToolbarView()
         tv.add_top_bar(Adw.HeaderBar())
         view = Gtk.TextView(editable=False, monospace=True, left_margin=14, right_margin=14, top_margin=10,
                             bottom_margin=10, css_classes=["hel-mono"])
+        if wrap:
+            view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         buf = view.get_buffer()
         add = buf.create_tag("add", foreground="#26c281")
         rem = buf.create_tag("rem", foreground="#f0616d")
@@ -534,12 +651,455 @@ class Window(Adw.ApplicationWindow):
         w.set_content(tv)
         w.present()
 
+    # ------------------------------------------------------------ barras de aviso
+    def _bar(self, text, buttons, cls=()):
+        b = Gtk.Box(spacing=10, css_classes=["hel-bar"] + list(cls))
+        b.append(Gtk.Label(label=text, xalign=0, wrap=True, hexpand=True))
+        for label, cb, style in buttons:
+            bt = Gtk.Button(label=label, valign=Gtk.Align.CENTER, css_classes=style)
+            bt.connect("clicked", lambda _b, f=cb: f())
+            b.append(bt)
+        self.bars.append(b)
+
+    def fill_bars(self, st):
+        while (c := self.bars.get_first_child()) is not None:
+            self.bars.remove(c)
+        al = st.get("alert")
+        if al:
+            self._bar(f"Possível ransomware: {al['files']} arquivos pessoais foram reescritos de uma vez antes do ponto "
+                      f"#{al['point']} ({when(al['time'])}). O ponto #{al['safe']}, anterior, foi protegido.",
+                      [("Ver detalhes", lambda: self.show_alert(al), ["suggested-action"]),
+                       ("Dispensar", lambda: self.eng.call("alert-clear", lambda *_a: self.refresh()), [])], ["alert"])
+        b = st.get("bisect")
+        if not b:
+            return
+        if b.get("done"):
+            self._bar(f"Busca concluída: o problema entrou no ponto #{b['first_bad']}"
+                      + (" (a troca de volta ao seu sistema vale ao reiniciar)." if st["pending"] else "."),
+                      [("Ver o que mudou", lambda: self.show_bisect(b), ["suggested-action"])]
+                      + ([("Reiniciar agora", lambda: self.eng.call("reboot", lambda *_a: None), [])] if st["pending"] else [])
+                      + [("Encerrar", self.bisect_close, [])])
+        elif b.get("active") and st["pending"]:
+            self._bar(f"Procurando o que quebrou: reinicie para testar o ponto #{b['testing']} "
+                      f"(faltam cerca de {b['left'] + 1} teste(s)).",
+                      [("Reiniciar agora", lambda: self.eng.call("reboot", lambda *_a: None), ["suggested-action"])])
+        elif b.get("active"):
+            self._bar(f"Procurando o que quebrou: você está no sistema do ponto #{b['testing']}. "
+                      "Teste o que estava com problema. Funciona aqui?",
+                      [("Funciona", lambda: self.bisect_mark(True), ["suggested-action"]),
+                       ("Não funciona", lambda: self.bisect_mark(False), ["destructive-action"]),
+                       ("Cancelar a busca", self.bisect_close, [])])
+
+    def show_alert(self, al):
+        out = [f"━━ Alarme de {when(al['time'])}", "", f"{al['files']} arquivos pessoais reescritos entre o ponto "
+               f"#{al['safe']} e o ponto #{al['point']}.", ""] + ["- " + x for x in al["reasons"]] + ["", "━━ Exemplos"]
+        out += ["  /home/" + x for x in al.get("sample", [])]
+        out += ["", f"O ponto #{al['safe']} é o último antes disso e está protegido contra expiração.",
+                "Para recuperar: aba Qualquer coisa, escolha a pasta afetada e volte à versão do ponto "
+                f"#{al['safe']}; ou volte os arquivos pessoais inteiros por 'Voltar para cá' naquele ponto.",
+                "", "Isto é uma heurística: uma conversão em massa de arquivos também pode disparar o alarme."]
+        self.show_text("Possível ransomware", "\n".join(out), wrap=True)
+
+    # ------------------------------------------------------------ bisect
+    def act_bisect(self, *_a):
+        b = self.st.get("bisect")
+        if b and b.get("done"):
+            return self.show_bisect(b)
+        if b and b.get("active"):
+            return self.toast("Já há uma busca em andamento (veja a barra no topo)")
+        pts = [p for p in self.points if "root" in p["parts"]]
+        if len(pts) < 2:
+            return self.fail("É preciso ter pelo menos dois pontos para procurar entre eles.")
+        d = Adw.AlertDialog(
+            heading="Procurar o que quebrou",
+            body="Algo funcionava e parou? Escolha o ponto mais recente em que ainda funcionava. A Heloisa coloca o "
+                 "sistema em pontos intermediários, um por vez; a cada reinício você responde se funciona ou não, "
+                 "e ela aponta o ponto exato em que o problema entrou e o que mudou nele.\n\nSó o sistema muda "
+                 "durante a busca; arquivos pessoais e logs ficam como estão. No fim, a máquina volta ao estado de agora.")
+        dd = Gtk.DropDown(model=Gtk.StringList.new([f"#{p['id']} · {when(p['time'])} · {p['desc']}"[:80] for p in reversed(pts)]))
+        d.set_extra_child(dd)
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Começar a busca")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+        d.connect("response", lambda _d, r: r == "yes" and self.bisect_start(list(reversed(pts))[dd.get_selected()]["id"]))
+        d.present(self)
+
+    def act_bisectfrom(self, _a, v):
+        cid = v.get_int32()
+        d = Adw.AlertDialog(heading=f"No ponto #{cid} funcionava?",
+                            body="A Heloisa vai procurar, entre esse ponto e agora, o ponto em que o problema entrou. "
+                                 "Serão alguns reinícios; no fim a máquina volta ao estado de agora.")
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Começar a busca")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+        d.connect("response", lambda _d, r: r == "yes" and self.bisect_start(cid))
+        d.present(self)
+
+    def bisect_start(self, good):
+        self.toast("Preparando a busca…")
+        self.eng.call("bisect-start", self.bisect_step, good=good)
+
+    def bisect_mark(self, works):
+        self.toast("Preparando o próximo teste…")
+        self.eng.call("bisect-mark", self.bisect_step, works=works)
+
+    def bisect_step(self, ok, b):
+        if not ok:
+            return self.fail(b)
+        self.refresh()
+        if b.get("done"):
+            return self.show_bisect(b)
+        q = Adw.AlertDialog(heading=f"Próximo teste: ponto #{b['testing']}",
+                            body="Reinicie para entrar no sistema desse ponto. Depois de testar, abra a Heloisa e "
+                                 f"responda se funciona. Faltam cerca de {b['left'] + 1} teste(s).")
+        q.add_response("later", "Depois")
+        q.add_response("now", "Reiniciar agora")
+        q.set_response_appearance("now", Adw.ResponseAppearance.SUGGESTED)
+        q.connect("response", lambda _q, rr: rr == "now" and self.eng.call("reboot", lambda *_a: None))
+        q.present(self)
+
+    def show_bisect(self, b):
+        r = b.get("result") or {"packages": {}, "etc": {}}
+        out = [f"━━ O problema entrou no ponto #{b['first_bad']}: {b.get('bad_desc', '')}",
+               f"   último ponto em que funcionava: #{b['last_good']}: {b.get('good_desc', '')}",
+               f"   testes feitos: {b.get('steps', 0)}"]
+        if b.get("bad_summary"):
+            out.append(f"   resumo do ponto #{b['first_bad']}: {b['bad_summary']}")
+        out.append("")
+        for title, grp in (("PACOTES que mudaram entre os dois", r.get("packages", {})),
+                           ("ARQUIVOS DE /etc que mudaram entre os dois", r.get("etc", {}))):
+            out.append(f"━━ {title}")
+            n = 0
+            for sign, key in (("+", "added"), ("-", "removed"), ("~", "changed")):
+                for x in grp.get(key, []):
+                    out.append(f"{sign} {x}")
+                    n += 1
+            if not n:
+                out.append("  nada mudou")
+            out.append("")
+        out.append("A máquina voltou (ou volta, ao reiniciar) ao estado de antes da busca. Para desfazer só a mudança "
+                   "culpada, use a aba Qualquer coisa no arquivo indicado, ou volte o sistema ao ponto "
+                   f"#{b['last_good']}.")
+        self.show_text("O que quebrou", "\n".join(out), "+ entrou   - saiu   ~ mudou")
+
+    def bisect_close(self):
+        self.eng.call("bisect-abort", lambda ok, r: (self.fail(r) if not ok else
+                                                     self.toast("Busca encerrada" + (": reinicie para voltar ao seu sistema"
+                                                                if r and r.get("restored") else "")), self.refresh()))
+
+    # ------------------------------------------------------------ experimentar, selar, proteger
+    def act_try(self, _a, v):
+        cid = v.get_int32()
+        cmd = (["pkexec"] if os.geteuid() != 0 else []) + [ENGINE, "try-shell", str(cid)]
+        for term in (["ptyxis", "--new-window", "--"], ["kgx", "--"], ["gnome-terminal", "--"], ["xterm", "-e"]):
+            if GLib.find_program_in_path(term[0]):
+                subprocess.Popen(term + cmd, start_new_session=True)
+                return self.toast(f"Abrindo um terminal dentro do ponto #{cid} (cópia descartável)")
+        self.fail("Nenhum terminal encontrado.")
+
+    def act_protect(self, _a, v):
+        cid = v.get_int32()
+        p = next((x for x in self.points if x["id"] == cid), None)
+        self.eng.call("protect", lambda ok, r: (None if ok else self.fail(r), self.refresh()), id=cid,
+                      on=not (p and p.get("protected")))
+
+    def act_seal(self, _a, v):
+        cid = v.get_int32()
+        p = next((x for x in self.points if x["id"] == cid), None)
+        if p and p.get("sealed"):
+            self.toast("Recalculando o hash do ponto… pode levar um minuto")
+
+            def got(ok, r):
+                if not ok:
+                    return self.fail(r)
+                out = [f"━━ Ponto #{cid}, selado em {when(r['sealed_at'])}", "",
+                       ("+ INTACTO: o conteúdo é exatamente o do momento do selo" if r["intact"]
+                        else "- ALTERADO: o conteúdo do ponto não é mais o do momento do selo"),
+                       ("+ assinatura confere com a chave desta máquina" if r["signature"]
+                        else "- a assinatura NÃO confere com a chave desta máquina"), "",
+                       f"hash no selo: {r['hash']}", f"hash agora:   {r['now']}", f"arquivos conferidos: {r['files']}"]
+                if r["changed"]:
+                    out += ["", "━━ O que difere"] + ["~ " + x for x in r["changed"]]
+                self.show_text(f"Selo do ponto #{cid}", "\n".join(out),
+                               "Guarde o hash fora desta máquina: é ele que prova, a terceiros, o estado do ponto.")
+            return self.eng.call("seal-verify", got, id=cid)
+        self.toast("Calculando o hash de todos os arquivos do ponto… pode levar um minuto")
+
+        def done(ok, r):
+            self.refresh()
+            if not ok:
+                return self.fail(r)
+            d = Adw.AlertDialog(heading=f"Ponto #{cid} selado",
+                                body=f"{r['files']} arquivos, {human(r['bytes'])}.\n\nSHA-256 do ponto:\n{r['hash']}\n\n"
+                                     "O hash foi assinado com a chave desta máquina. Guarde-o também fora dela "
+                                     "(e-mail, chamado, papel): é a prova de que a máquina estava neste estado. "
+                                     "Ponto selado nunca é apagado sozinho.")
+            d.add_response("copy", "Copiar o hash")
+            d.add_response("ok", "Fechar")
+            d.connect("response", lambda _d, rr: rr == "copy" and self.get_clipboard().set(r["hash"]))
+            d.present(self)
+        self.eng.call("seal", done, id=cid)
+
+    # ------------------------------------------------------------ ramos
+    def act_branchfrom(self, _a, v):
+        self.new_branch(v.get_int32())
+
+    def new_branch(self, cid=0):
+        d = Adw.AlertDialog(
+            heading="Novo ramo da máquina",
+            body=("Um ramo é uma segunda linha do sistema, que nasce " +
+                  (f"do ponto #{cid}" if cid else "do estado de agora") +
+                  " e segue por conta própria: teste um kernel, um driver ou uma mudança grande nele, e escolha no "
+                  "menu de boot qual ramo iniciar. Arquivos pessoais e logs são os mesmos em todos os ramos."))
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        name = Gtk.Entry(placeholder_text="nome: ex. teste-kernel", activates_default=True)
+        desc = Gtk.Entry(placeholder_text="para que serve (opcional)")
+        box.append(name)
+        box.append(desc)
+        d.set_extra_child(box)
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Criar ramo")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+        d.set_default_response("yes")
+
+        def resp(_d, r):
+            if r != "yes":
+                return
+            self.toast("Criando o ramo e preparando a entrada no menu de boot…")
+            self.eng.call("branch-create", lambda ok, res: (
+                self.fail(res) if not ok else self.toast(
+                    f"Ramo {res['name']} criado" + ("" if res["bootable"] else " (sem entrada no menu de boot)")),
+                self.refresh(), self.act_branches()), name=name.get_text().strip().lower(), id=cid,
+                desc=desc.get_text().strip())
+        d.connect("response", resp)
+        d.present(self)
+
+    def act_branches(self, *_a):
+        old = getattr(self, "_brwin", None)
+        if old:
+            old.close()
+        w = Adw.Window(transient_for=self, modal=True, title="Ramos da máquina", default_width=640, default_height=460)
+        esc = Gtk.ShortcutController()
+        esc.add_shortcut(Gtk.Shortcut.new(Gtk.ShortcutTrigger.parse_string("Escape"), Gtk.CallbackAction.new(lambda *_a: w.close() or True)))
+        w.add_controller(esc)
+        self._brwin = w
+        tv = Adw.ToolbarView()
+        hb = Adw.HeaderBar()
+        nb = Gtk.Button(label="Novo ramo", css_classes=["suggested-action"])
+        nb.connect("clicked", lambda *_: (w.close(), self.new_branch(0)))
+        hb.pack_start(nb)
+        tv.add_top_bar(hb)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin_top=14, margin_bottom=14,
+                      margin_start=14, margin_end=14)
+        box.append(Gtk.Label(
+            label="Cada ramo é um sistema completo e independente no mesmo disco. O ramo em uso é o que recebe os "
+                  "pontos novos. Para iniciar outro: troque aqui, ou escolha no menu de boot (Heloisa: iniciar outro ramo).",
+            xalign=0, wrap=True, css_classes=["hel-dim"]))
+        lb = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+        for b in self.st.get("branches") or []:
+            sub = b.get("desc") or ""
+            if b.get("created"):
+                sub += f" · criado {when(b['created'])}"
+            row = Adw.ActionRow(title=b["name"], subtitle=GLib.markup_escape_text(sub.strip(" ·")))
+            row.add_prefix(Gtk.Image.new_from_icon_name("media-playlist-consecutive-symbolic"))
+            if b["active"]:
+                row.add_suffix(Gtk.Label(label="em uso", css_classes=["hel-pill"], valign=Gtk.Align.CENTER))
+            else:
+                if b["bootable"]:
+                    row.add_suffix(Gtk.Label(label="no menu de boot", css_classes=["hel-dim", "caption"]))
+                u = Gtk.Button(label="Usar este ramo", valign=Gtk.Align.CENTER)
+                u.connect("clicked", lambda _b, n=b["name"]: (w.close(), self.branch_switch(n)))
+                row.add_suffix(u)
+                x = Gtk.Button(icon_name="user-trash-symbolic", tooltip_text="Apagar o ramo", valign=Gtk.Align.CENTER,
+                               css_classes=["flat"])
+                x.connect("clicked", lambda _b, n=b["name"]: (w.close(), self.branch_delete(n)))
+                row.add_suffix(x)
+            lb.append(row)
+        box.append(lb)
+        sc = Gtk.ScrolledWindow(vexpand=True)
+        sc.set_child(box)
+        tv.set_content(sc)
+        w.set_content(tv)
+        w.present()
+
+    def branch_switch(self, name):
+        d = Adw.AlertDialog(heading=f"Passar a usar o ramo “{name}”?",
+                            body="O ramo de agora fica guardado, intacto, e você pode voltar a ele quando quiser. "
+                                 "A troca vale ao reiniciar.")
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Trocar de ramo")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+
+        def resp(_d, r):
+            if r != "yes":
+                return
+            self.toast("Trocando de ramo…")
+
+            def after(ok, res):
+                self.refresh()
+                if not ok:
+                    return self.fail(res)
+                q = Adw.AlertDialog(heading="Pronto. Falta reiniciar.",
+                                    body=f"Ao reiniciar, o sistema será o do ramo {res['to']}. O ramo {res['from']} ficou guardado.")
+                q.add_response("later", "Depois")
+                q.add_response("now", "Reiniciar agora")
+                q.set_response_appearance("now", Adw.ResponseAppearance.SUGGESTED)
+                q.connect("response", lambda _q, rr: rr == "now" and self.eng.call("reboot", lambda *_a: None))
+                q.present(self)
+            self.eng.call("branch-switch", after, name=name)
+        d.connect("response", resp)
+        d.present(self)
+
+    def branch_delete(self, name):
+        d = Adw.AlertDialog(heading=f"Apagar o ramo “{name}”?",
+                            body="O sistema desse ramo é apagado. Não tem volta. Os pontos criados nele continuam na "
+                                 "linha do tempo.")
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Apagar")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
+        d.connect("response", lambda _d, r: r == "yes" and self.eng.call(
+            "branch-delete", lambda ok, res: (None if ok else self.fail(res), self.refresh()), name=name))
+        d.present(self)
+
+    # ------------------------------------------------------------ enviar pontos para fora
+    def act_push(self, *_a):
+        def got(ok, ts):
+            if not ok:
+                return self.fail(ts)
+            d = Adw.AlertDialog(
+                heading="Enviar os pontos para outro disco",
+                body="Os pontos vivem no mesmo disco do sistema. Enviá-los para fora é o que os transforma em backup: "
+                     "se o disco morrer, eles continuam lá. Só vai o que mudou desde o último envio.\n\n"
+                     "Destino: um disco externo formatado em btrfs (monte-o no app Arquivos), ou um servidor com btrfs, "
+                     "no formato ssh://root@servidor/caminho (usa a chave SSH do root desta máquina).")
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            first, radios = None, []
+            for t in ts:
+                c = Gtk.CheckButton(label=f"{t['path']}   ({t.get('label') or t['dev']}, {t['avail']} livres)", group=first)
+                first = first or c
+                c.dest = t["path"]
+                radios.append(c)
+                box.append(c)
+            if radios:
+                radios[0].set_active(True)
+            else:
+                box.append(Gtk.Label(label="Nenhum disco btrfs externo montado agora.", xalign=0, css_classes=["hel-dim"]))
+            e = Gtk.Entry(placeholder_text="ou: ssh://root@servidor/caminho  ·  /pasta/em/outro/disco/btrfs")
+            box.append(e)
+            d.set_extra_child(box)
+            d.add_response("no", "Cancelar")
+            d.add_response("yes", "Enviar")
+            d.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+
+            def resp(_d, r):
+                dest = e.get_text().strip() or next((c.dest for c in radios if c.get_active()), "")
+                if r != "yes" or not dest:
+                    return
+                self.toast("Enviando os pontos… o primeiro envio copia o sistema inteiro e pode demorar")
+
+                def done(ok2, res):
+                    self.refresh()
+                    if not ok2:
+                        return self.fail(res)
+                    q = Adw.AlertDialog(
+                        heading="Pontos enviados",
+                        body=f"{len(res['sent'])} ponto(s) enviado(s), {res['already']} já estavam lá.\n"
+                             f"{human(res['bytes'])} transferidos para {res['dest']}.\n\nCom essa cópia dá para montar "
+                             "uma máquina igual em outro computador: inicie pelo pendrive do MilizOS, abra a Heloisa e "
+                             "escolha “Clonar de uma cópia”.")
+                    q.add_response("ok", "Fechar")
+                    q.present(self)
+                self.eng.call("push", done, dest=dest)
+            d.connect("response", resp)
+            d.present(self)
+        self.eng.call("targets", got)
+
     # ------------------------------------------------------------ resgate (modo live)
     def show_rescue(self):
-        self.show_status("heloisa", "Resgate pela mídia",
-                         "Você iniciou pelo pendrive. A Heloisa procura instalações do MilizOS nos discos e traz "
-                         "de volta um ponto, reconstruindo o boot — mesmo que o sistema não inicie mais.",
-                         "Procurar sistemas instalados", self.find_rescue)
+        self.show_status("heloisa", "Resgate e clonagem pela mídia",
+                         "Você iniciou pelo pendrive. A Heloisa pode trazer de volta um ponto de um MilizOS instalado, "
+                         "reconstruindo o boot mesmo que o sistema não inicie mais; ou montar neste computador uma "
+                         "máquina igual a outra, a partir de uma cópia de pontos em disco externo.")
+        box = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER)
+        for label, cb, cls in (("Procurar sistemas instalados", self.find_rescue, ["pill", "suggested-action"]),
+                               ("Clonar de uma cópia", self.find_clone, ["pill"])):
+            b = Gtk.Button(label=label, css_classes=cls)
+            b.connect("clicked", lambda _b, f=cb: f())
+            box.append(b)
+        self.status.set_child(box)
+
+    def find_clone(self):
+        def got(ok, srcs):
+            if not ok:
+                return self.fail(srcs)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, halign=Gtk.Align.CENTER, width_request=680)
+            if not srcs:
+                box.append(Gtk.Label(label="Nenhuma cópia de pontos foi encontrada. Ligue o disco externo usado em "
+                                           "“Enviar pontos para outro disco” e procure de novo.", wrap=True))
+            for sdev in srcs:
+                box.append(Gtk.Label(label=f"Máquina “{sdev['host']}” em {sdev['dev']} {sdev.get('label') or ''}", xalign=0,
+                                     css_classes=["title-4"]))
+                lb = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+                for p in list(reversed(sdev["points"]))[:12]:
+                    row = Adw.ActionRow(title=GLib.markup_escape_text(p["desc"]),
+                                        subtitle=f"#{p['id']} · {when(p['time'])}" +
+                                        (("\n" + GLib.markup_escape_text(p["summary"])) if p.get("summary") else ""))
+                    b = Gtk.Button(label="Clonar para este computador", valign=Gtk.Align.CENTER, css_classes=["suggested-action"])
+                    b.connect("clicked", self.on_clone, sdev, p)
+                    row.add_suffix(b)
+                    lb.append(row)
+                box.append(lb)
+            b = Gtk.Button(label="Voltar", halign=Gtk.Align.CENTER, css_classes=["pill"])
+            b.connect("clicked", lambda *_: self.show_rescue())
+            box.append(b)
+            sc = Gtk.ScrolledWindow(min_content_height=420, propagate_natural_height=True)
+            sc.set_child(box)
+            self.status.set_child(sc)
+        self.eng.call("backups", got)
+
+    def on_clone(self, _b, sdev, p):
+        def got(ok, ds):
+            ds = [d for d in (ds if ok else []) if d.get("path") != sdev["dev"] and not sdev["dev"].startswith(d.get("path", "?"))]
+            if not ds:
+                return self.fail("Não encontrei um disco de destino diferente do disco da cópia.")
+            d = Adw.AlertDialog(
+                heading=f"Clonar “{sdev['host']}” (ponto #{p['id']}) para este computador",
+                body="O disco escolhido será APAGADO por inteiro e receberá o sistema, os usuários e as configurações "
+                     "daquele ponto. Chaves SSH do servidor e identidade da máquina são geradas de novo.")
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            first, radios = None, []
+            for x in ds:
+                c = Gtk.CheckButton(label=f"{x['path']}   {x.get('model') or ''}   {human(x.get('size') or 0)}", group=first)
+                first = first or c
+                c.disk = x["path"]
+                radios.append(c)
+                box.append(c)
+            radios[0].set_active(True)
+            host = Gtk.Entry(text=sdev["host"] + "-2", placeholder_text="nome da nova máquina")
+            box.append(host)
+            home = Gtk.CheckButton(label="Trazer também os arquivos pessoais (/home)", active=p.get("home", False),
+                                   sensitive=p.get("home", False))
+            box.append(home)
+            d.set_extra_child(box)
+            d.add_response("no", "Cancelar")
+            d.add_response("yes", "Apagar o disco e clonar")
+            d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
+
+            def resp(_d, r):
+                if r != "yes":
+                    return
+                disk = next(c.disk for c in radios if c.get_active())
+                self.show_status("heloisa", "Clonando…", "Particionando, copiando o sistema do ponto e instalando o boot. "
+                                 "Leva alguns minutos; não desligue.")
+                self.eng.call("clone", lambda ok2, res: self.show_status(
+                    "object-select-symbolic", "Máquina clonada",
+                    f"{res['hostname']} está instalada em {res['disk']}. Retire o pendrive e reinicie.") if ok2 else (
+                        self.fail(res), self.show_rescue()),
+                    dev=sdev["dev"], dir=sdev["dir"], id=p["id"], disk=disk, hostname=host.get_text().strip() or "milizos",
+                    home=home.get_active())
+            d.connect("response", resp)
+            d.present(self)
+        self.eng.call("disks", got)
 
     def find_rescue(self):
         def got(ok, vols):
@@ -570,7 +1130,7 @@ class Window(Adw.ApplicationWindow):
     def on_rescue(self, _b, dev, p):
         self.toast("Restaurando e reconstruindo o boot… pode levar alguns minutos")
         self.eng.call("rescue", lambda ok, r: self.fail(r) if not ok else self.show_status(
-            "emblem-ok-symbolic", "Sistema resgatado",
+            "object-select-symbolic", "Sistema resgatado",
             f"O ponto #{p['id']} voltou a ser o sistema e o boot foi reinstalado em {r['disk']}. "
             "Retire o pendrive e reinicie."), dev=dev, id=p["id"])
 
@@ -591,12 +1151,34 @@ class App(Adw.Application):
         from gi.repository import Gdk
         Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), prov, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         w = Window(self, self.path)
-        for name, fn in (("changes", w.act_changes), ("explore", w.act_explore), ("delete", w.act_delete)):
+        for name, fn in (("changes", w.act_changes), ("explore", w.act_explore), ("delete", w.act_delete),
+                         ("try", w.act_try), ("branchfrom", w.act_branchfrom), ("bisectfrom", w.act_bisectfrom),
+                         ("seal", w.act_seal), ("protect", w.act_protect)):
             a = Gio.SimpleAction.new(name, GLib.VariantType.new("i"))
+            a.connect("activate", fn)
+            w.add_action(a)
+        for name, fn in (("branches", w.act_branches), ("push", w.act_push), ("bisect", w.act_bisect)):
+            a = Gio.SimpleAction.new(name, None)
             a.connect("activate", fn)
             w.add_action(a)
         w.present()
 
 
+def needs_attention():
+    """Ha busca do que quebrou em andamento ou alarme pendente? (lido sem privilegio, de /.heloisa)"""
+    for name, key in (("bisect", "active"), ("bisect", "done"), ("alert", "files")):
+        try:
+            with open(f"{STATE_DIR}/{name}.json", encoding="utf-8") as f:
+                if json.load(f).get(key):
+                    return True
+        except (OSError, ValueError, AttributeError):
+            pass
+    return False
+
+
 if __name__ == "__main__":
+    if "--check" in sys.argv:          # chamado no login: so aparece se houver algo esperando resposta
+        if not needs_attention():
+            sys.exit(0)
+        sys.argv.remove("--check")
     sys.exit(App().run(sys.argv))

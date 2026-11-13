@@ -25,10 +25,10 @@ Uso do dia a dia: [MANUAL.md](MANUAL.md). Funcionamento interno: [ARQUITETURA.md
 Confira a ISO antes de gravar:
 
 ```bash
-curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
-  && cat MilizOS-2.0-x86_64.iso.part-* > MilizOS-2.0-x86_64.iso \
-  && sha256sum -c MilizOS-2.0-x86_64.iso.sha256 && rm MilizOS-2.0-x86_64.iso.part-*
-sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.1.0/MilizOS-2.1.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.1.0/MilizOS-2.1.0-x86_64.iso.sha256" \
+  && cat MilizOS-2.1.0-x86_64.iso.part-* > MilizOS-2.1.0-x86_64.iso \
+  && sha256sum -c MilizOS-2.1.0-x86_64.iso.sha256 && rm MilizOS-2.1.0-x86_64.iso.part-*
+sudo dd if=MilizOS-2.1.0-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ## Instalar
@@ -137,11 +137,24 @@ sudo /usr/libexec/milizos/heloisa-engine create '{"desc": "antes da janela de mu
 sudo /usr/libexec/milizos/heloisa-engine status
 ```
 
-**Backup externo** continua necessário. Para mandar um ponto para outro disco:
+**Backup externo:** menu principal da Heloisa, *Enviar pontos para outro disco*. O destino
+é um disco btrfs montado ou `ssh://root@servidor/caminho` (volume btrfs, chave SSH do root
+desta máquina já autorizada lá). O envio é incremental e cria `milizos-MAQUINA/N/{root,home,log}`
+no destino. À mão, o equivalente é:
 
 ```bash
 sudo btrfs send /.heloisa/12/home | sudo btrfs receive /mnt/backup/
 ```
+
+**Padronizar máquinas:** prepare uma, envie os pontos para um disco e use *Clonar de uma
+cópia* na Heloisa da mídia de instalação em cada computador novo. Cada clone ganha nome,
+chaves SSH e identificador próprios; usuários e senhas são os da origem.
+
+**Evidência:** *Selar este ponto* gera um SHA-256 assinado do estado da máquina. Guarde o
+hash no chamado do incidente.
+
+**Atualização arriscada:** crie um ramo (*Ramos da máquina*), reinicie nele, atualize e
+teste. Se der certo, continue nele; se não, volte ao ramo principal pelo menu de boot.
 
 ## Pandora na operação
 

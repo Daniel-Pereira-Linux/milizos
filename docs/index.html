@@ -69,13 +69,39 @@ header{position:relative;border-bottom:1px solid var(--line);overflow:hidden;
    radial-gradient(700px 420px at 4% 96%,rgba(0,240,200,.11),transparent 60%),
    var(--bg)}
 header:before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;opacity:.28;-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 15%,transparent 72%);mask-image:radial-gradient(ellipse at 50% 30%,#000 15%,transparent 72%);pointer-events:none}
-.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:52px;align-items:center;padding:76px 20px 84px}
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:52px;align-items:center;padding:76px 20px 84px}
 h1{font-size:clamp(34px,5.1vw,62px);line-height:1.02;letter-spacing:-.055em;margin:0 0 22px;font-weight:800}
 h1 em{font-style:normal;background:linear-gradient(100deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .lead{font-size:18.5px;color:var(--mut);max-width:56ch;margin:0 0 30px}
 .lead b{color:var(--tx);font-weight:600}
 .btns{display:flex;flex-wrap:wrap;gap:12px}
 .fine{margin:20px 0 0;font:500 13px var(--mono);color:var(--dim)}
+
+/* logo 3D animada */
+.logo3d{position:relative;perspective:900px;display:grid;place-items:center;min-height:400px}
+.logo3d img{position:relative;z-index:2;width:min(300px,62vw);filter:drop-shadow(0 0 46px rgba(0,240,200,.28));animation:spin 14s ease-in-out infinite,glow 5s ease-in-out infinite}
+@keyframes spin{0%,100%{transform:rotateY(-24deg) rotateX(6deg)}50%{transform:rotateY(24deg) rotateX(-6deg)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 34px rgba(0,240,200,.22))}50%{filter:drop-shadow(0 0 64px rgba(45,127,249,.5))}}
+.logo3d .ring{position:absolute;left:50%;top:50%;width:var(--d);height:var(--d);margin:calc(var(--d)/-2) 0 0 calc(var(--d)/-2);border-radius:50%;border:1px dashed rgba(0,240,200,.28);animation:orbit var(--t) linear infinite}
+.logo3d .ring:nth-child(2){border-color:rgba(45,127,249,.3);animation-direction:reverse}
+.logo3d .ring:before{content:"";position:absolute;top:-5px;left:50%;width:9px;height:9px;margin-left:-5px;border-radius:50%;background:var(--ac);box-shadow:0 0 14px var(--ac)}
+.logo3d .ring:nth-child(2):before{background:var(--ac2);box-shadow:0 0 14px var(--ac2)}
+@keyframes orbit{to{transform:rotate(360deg)}}
+h1 em{background-size:200% 100%;animation:shine 7s ease-in-out infinite}
+@keyframes shine{0%,100%{background-position:0 0}50%{background-position:100% 0}}
+.btn.pri{position:relative;overflow:hidden}
+.btn.pri:after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:sweep 4.5s ease-in-out infinite}
+@keyframes sweep{0%,60%{left:-60%}100%{left:130%}}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+.card{transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--line2);transform:translateY(-3px)}
+.autor{display:grid;grid-template-columns:auto minmax(0,1fr);gap:26px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px 32px}
+.autor img{width:84px;height:84px;animation:glow 5s ease-in-out infinite}
+.autor h2{font-size:clamp(20px,2.4vw,26px);margin-bottom:8px}
+.autor p{margin:0;color:var(--mut);max-width:74ch}
+.autor p b{color:var(--tx);font-weight:600}
+.new,.map span.new,.ck span.new{display:inline-block;font:700 10.5px var(--mono);letter-spacing:.08em;color:#04121a;background:var(--ac);border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
 
 /* demonstração: linha do tempo */
 .demo{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line2);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(0,240,200,.04);overflow:hidden}
@@ -236,6 +262,7 @@ footer p{max-width:86ch}
 
 @media(max-width:1000px){
   .hero{grid-template-columns:minmax(0,1fr);padding-top:52px;gap:38px}
+  .logo3d{order:-1;min-height:340px}
   .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .g3,.rel{grid-template-columns:minmax(0,1fr)}
   .two{grid-template-columns:minmax(0,1fr);gap:28px}
@@ -253,17 +280,20 @@ footer p{max-width:86ch}
   .flow{grid-template-columns:minmax(0,1fr)}
   nav .brand span{display:none}
   .log button{padding:6px 9px}
+  .logo3d{min-height:300px;order:-1}
+  .autor{grid-template-columns:minmax(0,1fr);text-align:center;justify-items:center}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*:before,*:after{animation:none!important;transition:none!important}
+  .rv{opacity:1;transform:none}
 }
 </style>
 </head>
 <body>
 
 <nav><div class="wrap">
-<a class="brand" href="#topo"><img src="assets/logo.svg" alt="" width="30" height="30">MilizOS <span>2.0</span></a>
+<a class="brand" href="#topo"><img src="assets/logo.svg" alt="" width="30" height="30">MilizOS <span>2.1.0</span></a>
 <div class="links">
 <a class="opt" href="#commit">Tudo é commit</a>
 <a class="opt" href="#heloisa">Heloisa</a>
@@ -276,16 +306,37 @@ footer p{max-width:86ch}
 
 <header id="topo"><div class="wrap hero">
 <div>
-<span class="eyebrow">MilizOS 2.0 "Heloisa"</span>
+<span class="eyebrow">MilizOS 2.1.0 "Heloisa"</span>
 <h1>Na sua máquina,<br><em>tudo é commit.</em></h1>
-<p class="lead">O MilizOS é um Linux <b>totalmente gravável</b> em que a máquina inteira tem histórico: sistema, arquivos pessoais e logs. Instalou, editou, apagou, quebrou? Volte um arquivo, uma pasta ou o sistema todo a qualquer ponto. E voltar também vira história.</p>
+<p class="lead">O MilizOS é um Linux <b>totalmente gravável</b> em que a máquina inteira tem histórico: sistema, arquivos pessoais e logs. Instalou, editou, apagou, quebrou? Volte um arquivo, uma pasta ou o sistema todo a qualquer ponto. Crie ramos, procure o ponto que quebrou, envie a história para outro disco. E voltar também vira história.</p>
 <div class="btns">
-<a class="btn pri" href="#baixar">Baixar a ISO <small>2.0 · 3,3 GB</small></a>
-<a class="btn" href="#novidades">O que mudou na 2.0</a>
+<a class="btn pri" href="#baixar">Baixar a ISO <small>2.1.0 · 3,3 GB</small></a>
+<a class="btn" href="#novidades">O que há de novo na 2.1.0</a>
 </div>
 <p class="fine">Base Fedora 44 · para SOC, Blue Team e redes · roda em 4 GB de RAM</p>
 </div>
 
+<div class="logo3d" aria-hidden="false"><span class="ring" style="--d:380px;--t:26s"></span><span class="ring" style="--d:300px;--t:18s"></span><img src="assets/logo.svg" width="300" height="300" alt="Logo do MilizOS: um N em topologia de rede dentro de um escudo hexagonal"></div>
+</div></header>
+
+<div class="stats">
+<div><b>&lt; 1 s</b><span>para criar um ponto da máquina inteira</span></div>
+<div><b>15</b><span>pontos direto no menu de boot</span></div>
+<div><b>4 GB</b><span>de RAM bastam para o desktop completo</span></div>
+<div><b>0</b><span>formatos próprios: é btrfs, podman e dnf</span></div>
+</div>
+
+<section class="alt" id="experimente"><div class="wrap two">
+<div>
+<span class="eyebrow">Experimente aqui</span>
+<h2>Volte no tempo sem instalar nada</h2>
+<p class="sub" style="margin-bottom:18px">Esta é a linha do tempo da Heloisa, simulada no navegador. O relatório foi apagado e o <code>sshd_config</code> foi alterado: clique em <b>Voltar</b> em qualquer ponto e veja a máquina mudar.</p>
+<ul class="ck">
+<li><b>Voltar nunca apaga</b>: o estado de agora vira um ponto antes. Dá para desfazer o desfazer.</li>
+<li><b>Cada ponto diz o que mudou</b>: a Heloisa escreve o resumo sozinha, como uma mensagem de commit.</li>
+<li><b>Um arquivo volta sem reiniciar</b>: só a volta do sistema inteiro pede reinicialização.</li>
+</ul>
+</div>
 <div class="demo" id="demo">
 <div class="demo-bar"><i></i><i></i><i></i><b>Heloisa</b> linha do tempo <button type="button" id="demo-reset">recomeçar</button></div>
 <div class="state">
@@ -299,15 +350,7 @@ footer p{max-width:86ch}
 <ol class="log" id="demo-log" aria-label="Pontos da linha do tempo, do mais novo ao mais antigo"></ol>
 <p class="demo-msg" id="demo-msg" aria-live="polite"></p>
 <noscript><p class="demo-msg">A demonstração interativa precisa de JavaScript. As capturas reais do aplicativo estão mais abaixo.</p></noscript>
-</div>
-</div></header>
-
-<div class="stats">
-<div><b>&lt; 1 s</b><span>para criar um ponto da máquina inteira</span></div>
-<div><b>15</b><span>pontos direto no menu de boot</span></div>
-<div><b>4 GB</b><span>de RAM bastam para o desktop completo</span></div>
-<div><b>0</b><span>formatos próprios: é btrfs, podman e dnf</span></div>
-</div>
+</div></section>
 
 <section id="commit"><div class="wrap">
 <span class="eyebrow">A ideia</span>
@@ -321,9 +364,17 @@ footer p{max-width:86ch}
 <div><code>git diff</code><b>comparar versões</b><span>Diff colorido de qualquer arquivo contra qualquer ponto; pacotes que entraram, saíram ou mudaram.</span></div>
 <div><code>git checkout -- arquivo</code><b>voltar um caminho</b><span>Um arquivo ou uma pasta volta exatamente como era. Inclusive o que foi apagado.</span></div>
 <div><code>git revert</code><b>voltar a máquina</b><span>O estado atual vira um ponto antes de qualquer volta. A história só cresce, nunca é reescrita.</span></div>
+<div><code>mensagem de commit</code><b>resumo automático<span class="new">2.1</span></b><span>Cada ponto registra sozinho o que mudou desde o anterior: arquivos de <code>/etc</code> editados, pacotes, arquivos pessoais criados, alterados e apagados.</span></div>
+<div><code>git blame</code><b>quando mudou?<span class="new">2.1</span></b><span>Para qualquer arquivo: entre quais pontos ele mudou, quantas linhas e a causa provável (um <code>dnf</code>, uma volta, uma edição).</span></div>
+<div><code>git bisect</code><b>procurar o que quebrou<span class="new">2.1</span></b><span>Diga em que ponto funcionava. A Heloisa reinicia nos pontos do meio, pergunta "funciona?" e acha o ponto em que o problema entrou.</span></div>
+<div><code>git branch</code><b>ramos da máquina<span class="new">2.1</span></b><span>Um segundo sistema completo no mesmo disco, para testar um kernel ou uma mudança grande. Troca pelo aplicativo ou pelo menu de boot.</span></div>
+<div><code>git worktree</code><b>experimentar um ponto<span class="new">2.1</span></b><span>Um terminal dentro de uma cópia descartável do ponto, sem voltar nada e sem reiniciar.</span></div>
+<div><code>git push</code><b>enviar os pontos<span class="new">2.1</span></b><span>Para outro disco btrfs ou um servidor por SSH. Só vai o que mudou desde o último envio.</span></div>
+<div><code>git clone</code><b>clonar a máquina<span class="new">2.1</span></b><span>Pela mídia de instalação: um disco novo recebe a máquina de um ponto enviado, com outro nome e outras chaves.</span></div>
+<div><code>git tag -s</code><b>selar um ponto<span class="new">2.1</span></b><span>SHA-256 de todo o conteúdo do ponto, assinado com a chave da máquina. Prova o estado; ponto selado não expira.</span></div>
 <div><code>.git/</code><b>/.heloisa</b><span>Os pontos ficam montados somente leitura, legíveis com <code>ls</code>, <code>diff</code> e <code>cp</code>.</span></div>
 </div>
-<p class="note">É uma comparação, não um git de verdade: não há ramos nem merge. Por baixo são snapshots btrfs, e o aplicativo que cuida deles se chama Heloisa.</p>
+<p class="note">É uma comparação, não um git de verdade: não há merge, e um ramo é um sistema inteiro, não uma linha de código. Por baixo são snapshots btrfs, e o aplicativo que cuida deles se chama Heloisa.</p>
 </div></section>
 
 <section class="alt"><div class="wrap">
@@ -348,12 +399,12 @@ footer p{max-width:86ch}
 <h2>Quatro jeitos de voltar</h2>
 <p class="sub">Quanto pior a situação, mais cedo no boot a volta acontece. Em todos os casos o estado quebrado fica guardado como um ponto, para análise.</p>
 <div class="grid g4">
-<div class="card"><span class="n">Um arquivo deu errado</span><h3>Volte só ele</h3><p>Veja todas as versões que um arquivo ou pasta já teve, compare e traga de volta no lugar ou como cópia ao lado.</p></div>
+<div class="card"><span class="n">Um arquivo deu errado</span><h3>Volte só ele, sem reiniciar</h3><p>Veja todas as versões de um arquivo ou pasta, compare e traga de volta na hora. Se um serviço está escrevendo nele (um banco de dados, por exemplo), a Heloisa avisa e oferece parar, voltar e religar.</p></div>
 <div class="card"><span class="n">A máquina deu errado</span><h3>Volte tudo, ou parte</h3><p>Escolha o que volta: sistema, arquivos pessoais, logs ou qualquer combinação. A troca vale ao reiniciar.</p></div>
 <div class="card"><span class="n">Não inicia mais</span><h3>Pelo menu de boot</h3><p>O GRUB lista os 15 pontos mais recentes. A volta acontece antes de a raiz ser montada, com o kernel daquele ponto.</p></div>
 <div class="card"><span class="n">Nem o boot sobrou</span><h3>Resgate pela mídia</h3><p>Inicie pelo pendrive: a Heloisa acha os pontos no disco, restaura o sistema e reconstrói <code>/boot</code> e o GRUB.</p></div>
 </div>
-<p class="note">O que já foi e o que ainda não foi testado em cada caminho está nos <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md">problemas conhecidos</a>. O resgate pela mídia, por exemplo, ainda não foi repetido na 2.0.</p>
+<p class="note">O que já foi e o que ainda não foi testado em cada caminho está nos <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md">problemas conhecidos</a>. O resgate pela mídia, por exemplo, não foi repetido desde a 1.0.</p>
 </div></section>
 
 <section class="alt" id="heloisa"><div class="wrap">
@@ -365,11 +416,19 @@ footer p{max-width:86ch}
 <button role="tab" aria-selected="true" data-p="h1">Linha do tempo</button>
 <button role="tab" aria-selected="false" data-p="h2">Versões de um arquivo</button>
 <button role="tab" aria-selected="false" data-p="h3">Diff</button>
+<button role="tab" aria-selected="false" data-p="h5">Arquivo em uso</button>
+<button role="tab" aria-selected="false" data-p="h6">Quando mudou?</button>
+<button role="tab" aria-selected="false" data-p="h7">Ramos</button>
+<button role="tab" aria-selected="false" data-p="h8">Alarme</button>
 <button role="tab" aria-selected="false" data-p="h4">Menu de boot</button>
 </div>
 <div class="pane on" id="h1"><img class="shot" src="assets/heloisa-linha-do-tempo.png" width="1280" height="800" alt="Heloisa: linha do tempo com sete pontos, cada um com o tipo e o botão Voltar para cá"><p>Cada linha é a máquina inteira congelada. O menu de cada ponto mostra o que mudou desde então e deixa explorar os arquivos como eram.</p></div>
 <div class="pane" id="h2"><img class="shot" src="assets/heloisa-qualquer-coisa.png" width="1280" height="800" loading="lazy" alt="Heloisa: aba Qualquer coisa com as versões de /etc/teste.conf em cada ponto"><p>A aba <b>Qualquer coisa</b> navega por todo o sistema de arquivos e lista as versões de um caminho. O seletor <b>Ver:</b> mostra as pastas como eram em um ponto, e é assim que se acha o que foi apagado.</p></div>
 <div class="pane" id="h3"><img class="shot" src="assets/heloisa-diff.png" width="1280" height="800" loading="lazy" alt="Heloisa: diff colorido entre a versão de um ponto e a versão atual de um arquivo"><p>Antes de voltar, compare. O diff mostra exatamente o que muda se você trouxer aquela versão.</p></div>
+<div class="pane" id="h5"><img class="shot" src="assets/heloisa-arquivo-em-uso.png" width="1280" height="800" loading="lazy" alt="Heloisa avisando que fakedb.service está escrevendo no arquivo, com os botões Parar, voltar e religar e Voltar mesmo assim"><p>Voltar um arquivo não reinicia nada. Mas trocar o conteúdo por baixo de um programa em execução pode corromper dados: a Heloisa descobre quem está escrevendo no arquivo e oferece <b>parar o serviço, voltar e religar</b>.</p></div>
+<div class="pane" id="h6"><img class="shot" src="assets/heloisa-quando-mudou.png" width="1280" height="800" loading="lazy" alt="Heloisa: histórico de um arquivo mostrando entre quais pontos ele mudou, quantas linhas e a causa provável"><p><b>Quando mudou?</b> responde entre quais pontos um arquivo foi criado, alterado ou apagado, quantas linhas entraram e saíram e qual foi a causa provável.</p></div>
+<div class="pane" id="h7"><img class="shot" src="assets/heloisa-ramos.png" width="1280" height="800" loading="lazy" alt="Heloisa: janela Ramos da máquina com o ramo principal em uso e um ramo de teste disponível no menu de boot"><p>Um ramo é um sistema completo e independente no mesmo disco. O ramo em uso recebe os pontos novos; o outro fica esperando no menu de boot.</p></div>
+<div class="pane" id="h8"><img class="shot" src="assets/heloisa-alarme.png" width="1280" height="800" loading="lazy" alt="Heloisa: barra vermelha avisando de possível ransomware, com o ponto anterior protegido, e pontos com resumo automático do que mudou"><p>Se centenas de arquivos pessoais viram dados sem padrão de uma vez, a Heloisa avisa, <b>protege o último ponto bom</b> contra expiração e mostra por onde recuperar. É uma heurística, não um antivírus.</p></div>
 <div class="pane" id="h4"><img class="shot" src="assets/grub-heloisa.png" width="1280" height="800" loading="lazy" alt="Submenu Heloisa do GRUB listando pontos com número, data e descrição"><p>O submenu <b>Heloisa: voltar o sistema no tempo</b> do GRUB. Escolher um ponto inicia o sistema daquele momento; o que estava quebrado vira um ponto novo.</p></div>
 </div>
 </div></section>
@@ -382,7 +441,7 @@ footer p{max-width:86ch}
 <ul class="ck">
 <li><b>Sem comandos próprios</b>: as ferramentas são as originais, com o nome e o manual de sempre.</li>
 <li><b>Gravável de verdade</b>: <code>dnf</code>, <code>/etc</code>, <code>/usr</code>. Nada é somente leitura, nada é imutável.</li>
-<li><b>Não substitui backup</b>: os pontos vivem no mesmo disco. Protegem de erro, atualização ruim e ransomware comum, não da morte do disco.</li>
+<li><b>Backup de verdade é enviar</b>: os pontos vivem no mesmo disco e não sobrevivem à morte dele. Por isso a 2.1 envia a história para outro disco ou servidor, e dá para clonar a máquina a partir de lá.</li>
 </ul>
 </div>
 <div class="term"><div><i></i><i></i><i></i></div>
@@ -396,7 +455,7 @@ footer p{max-width:86ch}
 </div></section>
 
 <section class="alt" id="pandora"><div class="wrap two">
-<div><img class="shot" src="assets/pandora-caixas.png" width="1280" height="800" loading="lazy" alt="Pandora: uma caixa Alpine isolada com o Htop exportado para o menu"></div>
+<div><img class="shot" src="assets/pandora-pontos.png" width="1280" height="800" loading="lazy" alt="Pandora: uma caixa isolada aberta, com a lista de pontos da caixa e os botões Criar ponto e Voltar"></div>
 <div>
 <span class="eyebrow">Caixas Linux</span>
 <h2>Pandora: outro Linux, pronto para jogar fora</h2>
@@ -405,7 +464,8 @@ footer p{max-width:86ch}
 <li><b>Atalho automático</b>: instalou na caixa, apareceu no menu do GNOME. Continua rodando na caixa.</li>
 <li><b>Isolada</b>: só sai para a internet. Rede local e host são recusados, e a pasta pessoal é separada.</li>
 <li><b>Ponte</b>: usa a rede do host, para varredura e captura.</li>
-<li><b>Destruiu, sumiu</b>: programas, atalhos e pasta vão embora junto.</li>
+<li><b>Pontos da caixa</b><span class="new">2.1</span>: congele a caixa antes de um <code>apt upgrade</code> arriscado e volte em segundos, programas e pasta pessoal.</li>
+<li><b>Destruiu, sumiu</b>: programas, atalhos, pontos e pasta vão embora junto.</li>
 </ul>
 </div>
 </div></section>
@@ -454,7 +514,32 @@ footer p{max-width:86ch}
 
 <section id="novidades"><div class="wrap">
 <span class="eyebrow">Notas de versão</span>
-<h2>O que mudou da 1.0 para a 2.0</h2>
+<h2>O que há de novo na 2.1.0</h2>
+<p class="sub">A 2.0 deu história à máquina. A 2.1.0 dá a essa história o resto das ferramentas de um repositório: mensagem, blame, bisect, ramos, push, clone e assinatura. Quem está na 2.0 recebe tudo sozinho pela atualização diária.</p>
+<div class="rel" style="margin-bottom:22px">
+<div class="card"><h3><i style="--c:var(--ac)">NOVO</i>Na Heloisa</h3><ul>
+<li><b>Resumo automático</b> em cada ponto: o que mudou desde o anterior.</li>
+<li><b>Quando mudou?</b>: o histórico de um arquivo, ponto a ponto.</li>
+<li><b>Procurar o que quebrou</b>: busca binária entre os pontos, reiniciando e perguntando.</li>
+<li><b>Ramos da máquina</b>: sistemas paralelos no mesmo disco, também no menu de boot.</li>
+<li><b>Experimentar um ponto</b> em um terminal, sem voltar nada.</li>
+<li><b>Selar um ponto</b>: hash de tudo, assinado. Ponto selado ou protegido nunca expira.</li>
+</ul></div>
+<div class="card"><h3><i style="--c:#6FA8FF">NOVO</i>Fora do disco</h3><ul>
+<li><b>Enviar os pontos</b> para outro disco btrfs ou servidor por SSH, de forma incremental.</li>
+<li><b>Clonar a máquina</b> pela mídia, a partir de um ponto enviado.</li>
+<li><b>Alarme de ransomware</b>: reescrita em massa de arquivos pessoais gera aviso e protege o último ponto bom.</li>
+<li><b>Pontos nas caixas da Pandora</b>: a caixa inteira volta em segundos.</li>
+</ul></div>
+<div class="card"><h3><i style="--c:var(--amber)">MUDOU</i>Ficou melhor</h3><ul>
+<li><b>Voltar um arquivo em uso</b>: aviso de quem está escrevendo nele e a opção de parar o serviço, voltar e religar.</li>
+<li><b>Atalho no menu do ponto</b>: "Voltar só um arquivo ou pasta deste ponto".</li>
+<li><b>Aviso ao entrar</b>: a Heloisa abre sozinha se houver alarme ou busca em andamento.</li>
+<li><b>Instalador</b>: tentar de novo depois de uma falha não esbarra mais em disco ocupado.</li>
+</ul></div>
+</div>
+
+<h3 style="margin:38px 0 10px;font-size:20px">Antes: da 1.0 para a 2.0</h3>
 <p class="sub">A 1.0 "Sentinel" era um conjunto de comandos de terminal em volta do <code>nos</code>. A 2.0 "Heloisa" troca isso por uma ideia só: a máquina inteira tem histórico, e tudo se faz por dois aplicativos gráficos e pelas ferramentas originais.</p>
 
 <div class="tw wide"><table>
@@ -503,7 +588,8 @@ footer p{max-width:86ch}
 <div class="callout"><b>Vindo da 1.0?</b> A 1.0 não tem o repositório de atualização, então ela não vira 2.0 sozinha: a troca é por instalação nova, a partir da ISO. Da 2.0 em diante as correções chegam sozinhas.</div>
 
 <ol class="hist">
-<li class="cur"><h3>2.0 "Heloisa" <small>11 nov 2026 · atual</small></h3><p>Máquina do tempo, caixas Linux e atualização automática. <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/tag/v2.0">Ver a release</a> · <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CHANGELOG.md">Histórico completo</a></p></li>
+<li class="cur"><h3>2.1.0 "Heloisa" <small>13 nov 2026 · atual</small></h3><p>Ramos, busca do que quebrou, envio e clone, selo, alarme de ransomware e pontos nas caixas. <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/tag/v2.1.0">Ver a release</a> · <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CHANGELOG.md">Histórico completo</a></p></li>
+<li><h3>2.0 "Heloisa" <small>11 nov 2026</small></h3><p>Máquina do tempo, caixas Linux e atualização automática. Substituída pela 2.1.0; quem instalou a 2.0 é atualizado sozinho.</p></li>
 <li><h3>1.0 "Sentinel" <small>10 nov 2026</small></h3><p>Primeira versão pública: instalador próprio, checkpoints do sistema, comando <code>nos</code> e três perfis. <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/tag/v1.0">Ver a release</a></p></li>
 </ol>
 </div></section>
@@ -511,7 +597,7 @@ footer p{max-width:86ch}
 <section class="alt" id="baixar"><div class="wrap two top">
 <div>
 <span class="eyebrow">Baixar e instalar</span>
-<h2>MilizOS 2.0, em uma ISO</h2>
+<h2>MilizOS 2.1.0, em uma ISO</h2>
 <ol class="steps">
 <li><b>Baixe</b> com o comando ao lado: ele junta as duas partes e confere o SHA-256. Ou pegue os arquivos em <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Releases</a>.</li>
 <li><b>Grave</b> em um pendrive. A ISO é híbrida: BIOS e UEFI, com Secure Boot.</li>
@@ -519,19 +605,19 @@ footer p{max-width:86ch}
 <li><b>Escolha</b> disco, usuário e perfil. Mantenha o <b>btrfs</b>: é ele que dá a linha do tempo.</li>
 </ol>
 <p class="note" style="margin-top:0">Requisitos: x86-64, 4 GB de RAM, 30 GB de disco. Testado em máquina virtual; ainda não em hardware real.</p>
-<p class="sha"><b>SHA-256 da ISO</b><br>6167e3bb68b31acc3f87057381b345b5118b0e5c1fd1830f111ee3b28c8bb14a</p>
+<p class="sha"><b>SHA-256 da ISO</b><br>4e653e847649cae079dff77034178aa0fa20e804e3e5f9ffae6f2465c3701c7f</p>
 </div>
 <div class="grid">
 <div class="term"><div class="dlhead">baixar, juntar e conferir <button type="button" data-copy="dl1">Copiar</button></div>
-<pre id="dl1">curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.0/MilizOS-2.0-x86_64.iso.sha256" \
-  &amp;&amp; cat MilizOS-2.0-x86_64.iso.part-* &gt; MilizOS-2.0-x86_64.iso \
-  &amp;&amp; sha256sum -c MilizOS-2.0-x86_64.iso.sha256 &amp;&amp; rm MilizOS-2.0-x86_64.iso.part-*</pre></div>
+<pre id="dl1">curl -fL --remote-name-all "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.1.0/MilizOS-2.1.0-x86_64.iso.part-0[0-1]" "https://github.com/Daniel-Pereira-Linux/milizos/releases/download/v2.1.0/MilizOS-2.1.0-x86_64.iso.sha256" \
+  &amp;&amp; cat MilizOS-2.1.0-x86_64.iso.part-* &gt; MilizOS-2.1.0-x86_64.iso \
+  &amp;&amp; sha256sum -c MilizOS-2.1.0-x86_64.iso.sha256 &amp;&amp; rm MilizOS-2.1.0-x86_64.iso.part-*</pre></div>
 <div class="term"><div class="dlhead">gravar no pendrive (troque sdX)</div>
-<pre>sudo dd if=MilizOS-2.0-x86_64.iso of=/dev/sdX \
+<pre>sudo dd if=MilizOS-2.1.0-x86_64.iso of=/dev/sdX \
         bs=4M status=progress oflag=sync</pre></div>
 <div class="term"><div class="dlhead">ou testar em máquina virtual</div>
 <pre>qemu-system-x86_64 -enable-kvm -m 4G -smp 4 \
-        -cdrom MilizOS-2.0-x86_64.iso</pre></div>
+        -cdrom MilizOS-2.1.0-x86_64.iso</pre></div>
 </div>
 </div></section>
 
@@ -548,6 +634,15 @@ footer p{max-width:86ch}
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/blob/main/CONTRIBUTING.md"><b>Como colaborar</b><span>Corrigir um bug ou propor um recurso.</span></a>
 </div></div></section>
 
+<section id="autor"><div class="wrap"><div class="autor">
+<img src="assets/logo.svg" width="84" height="84" alt="">
+<div>
+<span class="eyebrow">Quem faz</span>
+<h2>Criado por Daniel Pereira</h2>
+<p><b>Daniel Pereira da Silva</b> é o criador do MilizOS e <b>mantenedor da documentação em português do kernel Linux</b>. O mesmo cuidado de explicar o kernel em bom português está aqui: um sistema que você entende, com manual que diz o que funciona e o que ainda não. <a href="https://www.linkedin.com/in/danielpereira-linux/">linkedin.com/in/danielpereira-linux</a></p>
+</div>
+</div></div></section>
+
 <section class="alt" id="cafe"><div class="wrap"><div class="cafe">
 <h2>Doe um café</h2>
 <p class="sub">O MilizOS é feito por uma pessoa só, no tempo livre, e é gratuito. Se ele te economizou uma noite de trabalho, um café ajuda a próxima versão a sair.</p>
@@ -556,7 +651,7 @@ footer p{max-width:86ch}
 </div></div></section>
 
 <footer><div class="wrap">
-<p><b>MilizOS</b> foi criado por <b>Daniel Pereira da Silva</b> · <a href="https://www.linkedin.com/in/danielpereira-linux/">linkedin.com/in/danielpereira-linux</a> · <a href="https://github.com/Daniel-Pereira-Linux/milizos">github.com/Daniel-Pereira-Linux/milizos</a></p>
+<p><b>MilizOS</b> foi criado por <b>Daniel Pereira da Silva</b>, mantenedor da documentação em português do kernel Linux · <a href="https://www.linkedin.com/in/danielpereira-linux/">linkedin.com/in/danielpereira-linux</a> · <a href="https://github.com/Daniel-Pereira-Linux/milizos">github.com/Daniel-Pereira-Linux/milizos</a></p>
 <p>Software livre: código sob GPL-3.0-or-later, arte sob CC-BY-SA-4.0. Baseado em Fedora Linux; o MilizOS não é afiliado ao Projeto Fedora nem à Red Hat. Use as ferramentas de segurança apenas em sistemas que você tem autorização para testar.</p>
 </div></footer>
 
@@ -569,6 +664,15 @@ document.querySelectorAll('[data-tabs]').forEach(g=>{
     ps.forEach(p=>p.classList.toggle('on',p.id===b.dataset.p));
   }));
 });
+
+/* revelar ao rolar */
+if('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('section h2,section .sub,.card,.map,.tw,.tools,.demo,.term,.shot,.docs a,.autor,.cafe,.stats div,.hist li,.callout').forEach((el,i)=>{
+    if(el.getBoundingClientRect().top<innerHeight)return;
+    el.classList.add('rv');el.style.transitionDelay=(i%4)*60+'ms';io.observe(el);
+  });
+}
 
 /* copiar */
 document.querySelectorAll('[data-copy]').forEach(b=>{
@@ -605,7 +709,7 @@ document.querySelectorAll('[data-copy]').forEach(b=>{
       {id:6,k:'hora',d:'ponto de hora em hora',t:'12:00',s:{zeek:1,ssh:1,rel:1}}
     ];
     now={zeek:1,ssh:1,rel:2};min=25;same=0;fresh=0;
-    msg.innerHTML='<b>Experimente:</b> o relatório foi apagado e o <code>sshd_config</code> foi alterado. Clique em <b>Voltar</b> no ponto #5 e veja a máquina mudar.';
+    msg.innerHTML='<b>Experimente:</b> clique em <b>Voltar</b> no ponto #5 e veja a máquina mudar.';
     draw({});
   }
   function hora(){const h=12+Math.floor(min/60),m=min%60;return (h%24<10?'0':'')+h%24+':'+(m<10?'0':'')+m}

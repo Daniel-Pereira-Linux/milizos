@@ -1,11 +1,11 @@
 NAME="MilizOS"
-VERSION="2.0 (Heloisa)"
+VERSION="2.1.0 (Heloisa)"
 ID=milizos
 ID_LIKE=fedora
-VERSION_ID=2.0
+VERSION_ID=2.1.0
 VERSION_CODENAME=heloisa
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="MilizOS 2.0 (Heloisa)"
+PRETTY_NAME="MilizOS 2.1.0 (Heloisa)"
 ANSI_COLOR="0;38;2;0;240;200"
 LOGO=milizos-logo
 DEFAULT_HOSTNAME="milizos"

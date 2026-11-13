@@ -6,7 +6,10 @@
 # O que a Pandora acrescenta:
 #   - aplicativos instalados dentro da caixa aparecem sozinhos no menu do GNOME;
 #   - dois modos de rede: "isolada" (so sai para a internet) e "ponte" (a rede do host);
-#   - destruir a caixa leva junto atalhos, icones e a pasta pessoal dela.
+#   - destruir a caixa leva junto atalhos, icones e a pasta pessoal dela;
+#   - pontos: a caixa inteira (programas e pasta) congelada, para voltar depois. Um ponto e uma
+#     imagem podman comum (`podman images` mostra em localhost/pandora-pontos/<caixa>).
+import datetime
 import glob
 import hashlib
 import json
@@ -21,6 +24,9 @@ HOME = os.path.expanduser("~")
 DATA = os.path.join(os.environ.get("XDG_DATA_HOME", HOME + "/.local/share"), "pandora")
 APPS = os.path.join(os.environ.get("XDG_DATA_HOME", HOME + "/.local/share"), "applications")
 ENTER = "/usr/libexec/milizos/pandora-enter"
+PTS = DATA + "/points"
+PT_IMG = "localhost/pandora-pontos"
+PT_KEEP_AUTO = 5          # pontos "antes de voltar" guardados por caixa
 
 IMAGES = [
     # id, nome, imagem, familia
@@ -98,9 +104,11 @@ def boxes():
         name = c["Names"][0]
         lab = c.get("Labels") or {}
         img = c.get("Image", "")
+        img = state(name).get("image") or img          # depois de uma volta a imagem e a do ponto
         out.append({"name": name, "image": img, "mode": lab.get("pandora.mode", "ponte"),
-                    "distro": next((n for _i, n, im in IMAGES if im == img), img.split("/")[-1]),
-                    "running": c.get("State") == "running", "apps": exported(name)})
+                    "distro": next((n for _i, n, im in IMAGES if im == img),
+                                   "caixa restaurada" if img.startswith(PT_IMG) else img.split("/")[-1]),
+                    "running": c.get("State") == "running", "apps": exported(name), "points": points(name)})
     return sorted(out, key=lambda b: b["name"])
 
 
@@ -115,6 +123,12 @@ def create(name, image, mode, log=print):
         raise Error("modo de rede desconhecido")
     if subprocess.call(["podman", "container", "exists", name]) == 0:
         raise Error(f"já existe uma caixa ou conteiner chamado {name}")
+    _make(name, image, mode, log)
+    save_state(name, {"image": image, "mode": mode, "baseline": sorted(inside_apps(name))})
+    log("▍pronta")
+
+
+def _make(name, image, mode, log):
     cmd = ["distrobox", "create", "--yes", "--no-entry", "--name", name, "--image", image,
            "--additional-flags", f"--label pandora=1 --label pandora.mode={mode}"]
     if mode == "isolada":
@@ -125,8 +139,6 @@ def create(name, image, mode, log=print):
     log("▍preparando a caixa (a primeira vez instala o básico dentro dela)…")
     start(name)
     wait_ready(name, log)
-    save_state(name, {"image": image, "mode": mode, "baseline": sorted(inside_apps(name))})
-    log("▍pronta")
 
 
 def wait_ready(name, log):
@@ -199,7 +211,95 @@ def destroy(name):
         run(["podman", "unshare", "rm", "-rf", h], check=False)
     if os.path.exists(state_path(name)):
         os.unlink(state_path(name))
+    for p in points(name):
+        _point_drop(name, p)
+    shutil.rmtree(f"{PTS}/{name}", ignore_errors=True)
     run(["update-desktop-database", APPS], check=False)
+
+
+# ---------------------------------------------------------------- pontos da caixa
+def _is_box(name):
+    return run(["podman", "inspect", "-f", '{{index .Config.Labels "pandora"}}', name], check=False) == "1"
+
+
+def points(name):
+    out = []
+    for f in glob.glob(f"{PTS}/{name}/*.json"):
+        try:
+            out.append(json.load(open(f)))
+        except (OSError, ValueError):
+            pass
+    return sorted(out, key=lambda p: p["id"])
+
+
+def _point_drop(name, p):
+    run(["podman", "rmi", "-f", p["image"]], check=False)
+    d = f"{PTS}/{name}/{p['id']}"
+    if os.path.isdir(d):
+        run(["podman", "unshare", "rm", "-rf", d], check=False)
+    try:
+        os.unlink(f"{d}.json")
+    except OSError:
+        pass
+
+
+def point_create(name, desc="ponto manual", kind="manual"):
+    """Congela a caixa inteira: os programas instalados (imagem) e, no modo isolado, a pasta pessoal dela."""
+    if not _is_box(name):
+        raise Error(f"{name} não é uma caixa da Pandora")
+    pts = points(name)
+    n = pts[-1]["id"] + 1 if pts else 1
+    tag = f"{PT_IMG}/{name}:{n}"
+    os.makedirs(f"{PTS}/{name}", exist_ok=True)
+    run(["podman", "commit", "-q", "--pause", name, tag], timeout=1800)
+    home = False
+    if mode_of(name) == "isolada" and os.path.isdir(box_home(name)):
+        os.makedirs(f"{PTS}/{name}/{n}", exist_ok=True)
+        run(["podman", "unshare", "cp", "-a", "--reflink=auto", box_home(name), f"{PTS}/{name}/{n}/home"])
+        home = True
+    p = {"id": n, "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "desc": desc or "ponto manual",
+         "kind": kind, "image": tag, "home": home}
+    json.dump(p, open(f"{PTS}/{name}/{n}.json", "w"), ensure_ascii=False)
+    for old in [x for x in points(name) if x.get("kind") == "antes"][:-PT_KEEP_AUTO]:
+        _point_drop(name, old)
+    return p
+
+
+def point_delete(name, n):
+    p = next((x for x in points(name) if x["id"] == n), None)
+    if not p:
+        raise Error(f"a caixa {name} não tem o ponto #{n}")
+    _point_drop(name, p)
+
+
+def point_restore(name, n, log=print):
+    """Volta a caixa a um ponto. O estado de agora vira um ponto antes: voltar nunca apaga."""
+    p = next((x for x in points(name) if x["id"] == n), None)
+    if not p:
+        raise Error(f"a caixa {name} não tem o ponto #{n}")
+    if subprocess.call(["podman", "image", "exists", p["image"]]) != 0:
+        raise Error(f"a imagem do ponto #{n} não existe mais")
+    mode = mode_of(name)
+    st = state(name)
+    if not st.get("image"):        # caixa sem registro: guarda de qual imagem ela nasceu
+        st["image"] = run(["podman", "inspect", "-f", "{{.ImageName}}", name], check=False)
+    log(f"▍guardando o estado de agora (ponto antes de voltar ao #{n})…")
+    saved = point_create(name, f"antes de voltar ao ponto #{n}", "antes")
+    for f in exported_files(name):
+        unexport_file(f)
+    run(["podman", "rm", "-f", "-v", name], check=False)
+    if mode == "isolada" and p.get("home"):
+        if os.path.isdir(box_home(name)):
+            run(["podman", "unshare", "rm", "-rf", box_home(name)], check=False)
+        os.makedirs(os.path.dirname(box_home(name)), exist_ok=True)
+        run(["podman", "unshare", "cp", "-a", "--reflink=auto", f"{PTS}/{name}/{n}/home", box_home(name)])
+    log(f"▍recriando a caixa a partir do ponto #{n}…")
+    _make(name, p["image"], mode, log)
+    st.setdefault("mode", mode)
+    save_state(name, st)
+    sync(name, log)
+    log("▍pronta")
+    return saved
 
 
 # ---------------------------------------------------------------- aplicativos no menu
@@ -335,6 +435,14 @@ def main(argv):
             print(install(argv[2], argv[3]))
         elif len(argv) == 3 and argv[1] == "destroy":
             destroy(argv[2])
+        elif len(argv) >= 3 and argv[1] == "point-create":
+            print(json.dumps(point_create(argv[2], " ".join(argv[3:])), ensure_ascii=False))
+        elif len(argv) == 3 and argv[1] == "points":
+            print(json.dumps(points(argv[2]), ensure_ascii=False, indent=1))
+        elif len(argv) == 4 and argv[1] == "point-restore":
+            print(json.dumps(point_restore(argv[2], int(argv[3])), ensure_ascii=False))
+        elif len(argv) == 4 and argv[1] == "point-delete":
+            point_delete(argv[2], int(argv[3]))
         else:
             print("uso interno da Pandora (abra o aplicativo Pandora)", file=sys.stderr)
             return 64

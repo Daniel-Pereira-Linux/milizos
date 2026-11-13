@@ -134,6 +134,25 @@ história só cresce, como um `git revert`.
 
 ![A aba Qualquer coisa mostrando as versões de um arquivo](assets/heloisa-qualquer-coisa.png)
 
+### O que a 2.1.0 acrescentou
+
+Tudo continua sendo btrfs e ferramentas comuns:
+
+| Recurso | Como é feito |
+|---|---|
+| Resumo do ponto, *Quando mudou?* | `btrfs send --no-data -p ANTERIOR PONTO \| btrfs receive --dump`: o btrfs lista só os metadados do que mudou, sem ler os arquivos. |
+| Arquivo em uso | Varredura de `/proc/*/fd` por descritores abertos para escrita; o serviço dono sai do cgroup do processo; `systemctl stop` e `start` em volta da troca. |
+| Ramos | Subvolumes `branches/NOME/root`; kernel e initramfs do ramo em `/boot/branches/NOME`; o parâmetro `heloisa.branch=NOME` faz o gancho do initramfs trocar os subvolumes antes de montar a raiz. |
+| Procurar o que quebrou | Estado em `snapshots/.state/bisect.json`; a cada passo, a mesma troca de subvolume da volta, só do sistema. |
+| Experimentar | Snapshots graváveis temporários do ponto e `systemd-nspawn`; apagados ao sair. |
+| Selo | Manifesto com SHA-256, modo e dono de cada caminho; o hash do manifesto é assinado com ed25519 (`openssl`), chave em `snapshots/.state/seal.key`. |
+| Envio | `btrfs send -p BASE PONTO \| btrfs receive` (local ou por `ssh`), em `milizos-MAQUINA/N/` no destino. |
+| Clone | O instalador, com a origem trocada: em vez da imagem da mídia, copia o `root` (e o `home`) de um ponto enviado. `/boot` e a ESP vêm da mídia. |
+| Alarme | Entropia de amostras dos arquivos pessoais reescritos entre dois pontos; acima de 7,6 bits por byte em massa, alerta em `snapshots/.state/alert.json`. |
+| Pontos da Pandora | `podman commit` da caixa para a imagem `localhost/pandora-pontos/NOME:N` e cópia com reflink da pasta pessoal isolada. |
+
+Pontos protegidos, selados e o último enviado ficam fora da expiração automática.
+
 ### Resgate
 
 Em modo live não há sistema instalado em uso, então a Heloisa muda de papel: procura

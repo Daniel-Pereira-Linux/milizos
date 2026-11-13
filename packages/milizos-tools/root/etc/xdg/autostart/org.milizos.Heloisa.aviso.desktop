@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Heloisa: avisos
+Comment=Abre a Heloisa no login se houver uma busca em andamento ou um alarme
+Exec=/usr/bin/heloisa --check
+Icon=heloisa
+NoDisplay=true
+X-GNOME-Autostart-Delay=8

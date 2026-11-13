@@ -163,6 +163,26 @@ class Window(Adw.ApplicationWindow):
                 bt.connect("clicked", cb, b)
                 ctl.add_suffix(bt)
             row.add_row(ctl)
+            pr = Adw.ActionRow(title="Pontos da caixa",
+                               subtitle="A caixa inteira congelada (programas"
+                               + (" e pasta pessoal" if b["mode"] == "isolada" else "")
+                               + "). Voltar nunca apaga: o estado de agora vira um ponto antes.")
+            np = Gtk.Button(label="Criar ponto", valign=Gtk.Align.CENTER)
+            np.connect("clicked", self.on_point_new, b)
+            pr.add_suffix(np)
+            row.add_row(pr)
+            for p in reversed(b.get("points", [])):
+                r = Adw.ActionRow(title=GLib.markup_escape_text(p["desc"]), subtitle=f"ponto #{p['id']} · {p['time'][:16]}")
+                r.add_prefix(Gtk.Image.new_from_icon_name(
+                    "edit-undo-symbolic" if p.get("kind") == "antes" else "bookmark-new-symbolic"))
+                vb = Gtk.Button(label="Voltar", valign=Gtk.Align.CENTER)
+                vb.connect("clicked", self.on_point_restore, b, p)
+                r.add_suffix(vb)
+                xb = Gtk.Button(icon_name="user-trash-symbolic", tooltip_text="Excluir este ponto",
+                                valign=Gtk.Align.CENTER, css_classes=["flat"])
+                xb.connect("clicked", self.on_point_delete, b, p)
+                r.add_suffix(xb)
+                row.add_row(r)
             g.add(row)
             self.list.append(g)
 
@@ -209,6 +229,55 @@ class Window(Adw.ApplicationWindow):
                 bg(lambda: engine.destroy(b["name"]),
                    lambda _r, err: (self.fail(err) if err else self.toast(f"Caixa {b['name']} destruída"), self.refresh()))
         d.connect("response", resp)
+        d.present(self)
+
+    def on_point_new(self, _b, b):
+        d = Adw.AlertDialog(heading=f"Criar ponto de “{b['name']}”",
+                            body="Dê um nome para lembrar depois, por exemplo o que você vai instalar ou testar.")
+        e = Gtk.Entry(placeholder_text="ex.: antes de instalar o metasploit", activates_default=True)
+        d.set_extra_child(e)
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Criar")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+        d.set_default_response("yes")
+
+        def resp(_d, r):
+            if r != "yes":
+                return
+            self.toast("Criando o ponto da caixa…")
+            bg(lambda: engine.point_create(b["name"], e.get_text().strip()),
+               lambda p, err: (self.fail(err) if err else self.toast(f"Ponto #{p['id']} de {b['name']} criado"),
+                               self.refresh()))
+        d.connect("response", resp)
+        d.present(self)
+
+    def on_point_restore(self, _b, b, p):
+        d = Adw.AlertDialog(heading=f"Voltar “{b['name']}” ao ponto #{p['id']}?",
+                            body=f"{p['desc']} · {p['time'][:16]}\n\nA caixa é recriada como era neste ponto. O estado "
+                                 "de agora é guardado em um novo ponto antes, então dá para desfazer. O que estiver "
+                                 "rodando na caixa será encerrado.")
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Voltar a caixa")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
+
+        def resp(_d, r):
+            if r != "yes":
+                return
+            lg = LogDialog(self, f"Voltando {b['name']} ao ponto #{p['id']}")
+            lg.present()
+            bg(lambda: engine.point_restore(b["name"], p["id"], lg.log),
+               lambda _r, err: (lg.finish(err), self.refresh()))
+        d.connect("response", resp)
+        d.present(self)
+
+    def on_point_delete(self, _b, b, p):
+        d = Adw.AlertDialog(heading=f"Excluir o ponto #{p['id']} de “{b['name']}”?", body="Excluir um ponto não tem volta.")
+        d.add_response("no", "Cancelar")
+        d.add_response("yes", "Excluir")
+        d.set_response_appearance("yes", Adw.ResponseAppearance.DESTRUCTIVE)
+        d.connect("response", lambda _d, r: r == "yes" and bg(
+            lambda: engine.point_delete(b["name"], p["id"]),
+            lambda _r, err: (self.fail(err) if err else None, self.refresh())))
         d.present(self)
 
     def on_install(self, _b, b):
