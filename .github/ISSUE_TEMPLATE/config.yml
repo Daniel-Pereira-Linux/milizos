@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidade de segurança
+    url: https://github.com/Daniel-Pereira-Linux/milizos/security/policy
+    about: Não abra issue pública. Veja como relatar em privado.
+  - name: O que já foi testado e os limites conhecidos
+    url: https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/PROBLEMAS-CONHECIDOS.md
+    about: Confira antes de relatar. O limite que você encontrou pode já estar listado.
+  - name: Manual
+    url: https://github.com/Daniel-Pereira-Linux/milizos/blob/main/docs/MANUAL.md
+    about: Como usar a Heloisa, a Pandora e o sistema no dia a dia.

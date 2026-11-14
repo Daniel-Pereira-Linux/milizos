@@ -1,0 +1,22 @@
+# Quem o GitHub chama para revisar cada pull request.
+# A lista de áreas e as regras estão em MAINTAINERS; ao preencher uma vaga lá,
+# acrescente aqui a conta do mantenedor na linha da área.
+
+*                                                         @Daniel-Pereira-Linux
+
+# Heloisa
+/packages/milizos-tools/root/usr/lib/milizos/heloisa/     @Daniel-Pereira-Linux
+/packages/milizos-tools/root/usr/lib/dracut/              @Daniel-Pereira-Linux
+/packages/milizos-tools/root/etc/grub.d/                  @Daniel-Pereira-Linux
+
+# Pandora
+/packages/milizos-tools/root/usr/lib/milizos/pandora/     @Daniel-Pereira-Linux
+
+# Instalador, perfis e ferramentas
+/packages/milizos-installer/                              @Daniel-Pereira-Linux
+/packages/milizos-tools/root/usr/share/milizos/           @Daniel-Pereira-Linux
+
+# Documentação, site e identidade visual
+/docs/                                                    @Daniel-Pereira-Linux
+/branding/                                                @Daniel-Pereira-Linux
+/packages/milizos-branding/                               @Daniel-Pereira-Linux

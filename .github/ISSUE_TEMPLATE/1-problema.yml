@@ -1,0 +1,106 @@
+name: Relatar um problema
+description: Algo não funcionou como deveria na ISO, na instalação ou no sistema instalado.
+title: "[Problema] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por relatar. Quanto mais exato o relato, mais rápido o conserto.
+        **Vulnerabilidade de segurança não entra aqui**: veja a [política de segurança](https://github.com/Daniel-Pereira-Linux/milizos/security/policy).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Onde está o problema
+      options:
+        - Heloisa (pontos, voltar, ramos, envio, clone)
+        - Pandora (caixas)
+        - Instalador ou modo live
+        - Boot (GRUB, tela de inicialização)
+        - Atualização automática
+        - Ferramentas e menu
+        - Site ou documentação
+        - Não sei
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do MilizOS
+      description: Saída de `grep PRETTY_NAME /etc/os-release`, ou o nome do arquivo da ISO.
+      placeholder: MilizOS 2.1.0 (Heloisa)
+    validations:
+      required: true
+  - type: input
+    id: pacotes
+    attributes:
+      label: Versão dos pacotes
+      description: Saída de `rpm -q milizos-tools milizos-installer milizos-release`. Deixe em branco se o problema é na ISO, antes de instalar.
+      placeholder: milizos-tools-2.1.0-1.noarch …
+  - type: dropdown
+    id: onde
+    attributes:
+      label: Onde o sistema roda
+      options:
+        - Computador real
+        - Máquina virtual (QEMU/KVM, virt-manager, GNOME Boxes)
+        - Máquina virtual (VirtualBox)
+        - Máquina virtual (VMware)
+        - Máquina virtual (outra)
+    validations:
+      required: true
+  - type: checkboxes
+    id: instalacao
+    attributes:
+      label: Como foi instalado
+      description: Marque o que se aplica.
+      options:
+        - label: btrfs (padrão do instalador)
+        - label: xfs ou ext4
+        - label: Disco cifrado (LUKS2)
+        - label: UEFI
+        - label: BIOS (legado)
+        - label: Secure Boot ligado
+        - label: Instalação desassistida (autoinstall.json)
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      description: O passo a passo, do começo, até o problema aparecer.
+      placeholder: |
+        1. Abri a Heloisa
+        2. Cliquei em …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que aconteceu
+      description: A mensagem de erro exata, se houver. Captura de tela ajuda.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que você esperava
+    validations:
+      required: true
+  - type: textarea
+    id: registros
+    attributes:
+      label: Registros
+      description: |
+        Cole o que tiver. Leia antes de enviar: registros podem conter nomes de usuário, de máquina e de arquivos.
+        - Instalação: `/var/log/milizos-install.log`
+        - Heloisa: `journalctl -b -u 'heloisa-*'`
+        - Atualização: `journalctl -u milizos-update`
+        - Serviços em falha: `systemctl --failed`
+      render: text
+  - type: checkboxes
+    id: conferi
+    attributes:
+      label: Antes de enviar
+      options:
+        - label: Procurei nas issues abertas e em docs/PROBLEMAS-CONHECIDOS.md e não achei este problema.
+          required: true

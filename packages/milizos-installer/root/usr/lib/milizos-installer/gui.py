@@ -26,7 +26,7 @@ EN = {
     "Perfil": "Profile", "Resumo": "Summary", "Instalação": "Install", "Concluído": "Done",
     "Voltar": "Back", "Avançar": "Next", "Instalar agora": "Install now", "Sair": "Quit",
     "Bem-vindo ao MilizOS": "Welcome to MilizOS",
-    "A distribuição para times de SOC, Blue Team e Redes.": "The distribution for SOC, Blue Team and Network teams.",
+    "O Linux em que tudo é commit.": "The Linux where everything is a commit.",
     "Idioma do sistema": "System language",
     "Teclado e fuso horário": "Keyboard and time zone",
     "Layout do teclado": "Keyboard layout", "Fuso horário": "Time zone",
@@ -292,7 +292,7 @@ class Installer(Adw.ApplicationWindow):
             box.append(im)
         self.w_title = Gtk.Label(label=_("Bem-vindo ao MilizOS"))
         self.w_title.add_css_class("hero")
-        self.w_sub = Gtk.Label(label=_("A distribuição para times de SOC, Blue Team e Redes."))
+        self.w_sub = Gtk.Label(label=_("O Linux em que tudo é commit."))
         self.w_sub.add_css_class("page-sub")
         box.append(self.w_title)
         box.append(self.w_sub)
@@ -316,7 +316,7 @@ class Installer(Adw.ApplicationWindow):
 
     def retranslate(self):
         self.w_title.set_label(_("Bem-vindo ao MilizOS"))
-        self.w_sub.set_label(_("A distribuição para times de SOC, Blue Team e Redes."))
+        self.w_sub.set_label(_("O Linux em que tudo é commit."))
         self.lang_row.set_title(_("Idioma do sistema"))
         for (row, n, l), t in zip(self.step_rows, self.TITLES):
             l.set_label(_(t))

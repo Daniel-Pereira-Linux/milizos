@@ -1,0 +1,47 @@
+name: Sugerir um recurso ou uma ferramenta
+description: Uma ideia para a Heloisa, a Pandora, o instalador, ou uma ferramenta que deveria vir na ISO.
+title: "[Sugestão] "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: O que você está sugerindo
+      options:
+        - Recurso novo na Heloisa
+        - Recurso novo na Pandora
+        - Mudança no instalador ou nos perfis
+        - Ferramenta para vir na ISO
+        - Melhoria no site ou na documentação
+        - Outra coisa
+    validations:
+      required: true
+  - type: textarea
+    id: problema
+    attributes:
+      label: Que problema isso resolve
+      description: A situação real em que você sentiu falta. Uma ideia com um caso de uso concreto anda mais rápido.
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: O que você propõe
+      description: Para uma ferramenta, informe o nome do pacote no Fedora (`dnf info NOME`). Se ela não existe no Fedora, ela roda em uma caixa da Pandora, e não entra na ISO.
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Como você resolve hoje
+      description: Opcional.
+  - type: checkboxes
+    id: regras
+    attributes:
+      label: Regras da casa
+      description: O projeto recusa sugestões que quebrem estas duas regras.
+      options:
+        - label: A sugestão não cria comando próprio do MilizOS nem formato próprio de dados.
+          required: true
+        - label: Procurei nas issues abertas e não achei a mesma sugestão.
+          required: true

@@ -1,6 +1,6 @@
 Name:           milizos-release
 Version:        2.1.0
-Release:        1
+Release:        2
 Summary:        Arquivos de release do MilizOS
 License:        MIT
 Obsoletes:      networkos-release < 2
@@ -16,8 +16,8 @@ Conflicts:      generic-release
 
 %description
 Identidade do sistema (os-release), presets de servicos do systemd e macros
-de distribuicao do MilizOS, distribuicao para times de SOC e Redes baseada
-no Fedora (familia Red Hat).
+de distribuicao do MilizOS, o Linux em que tudo e commit: distribuicao baseada
+no Fedora em que a maquina inteira tem historico.
 
 %install
 cp -a %{_sourcedir}/root/. %{buildroot}/

@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/logo.svg" width="150" alt="Logo do MilizOS"></p>
 <h1 align="center">MilizOS</h1>
-<p align="center"><b>A distribuição Linux para quem defende: SOC, Blue Team e Engenharia de Redes.</b></p>
+<p align="center"><b>O Linux em que tudo é commit.</b></p>
 <p align="center">
 <a href="https://github.com/Daniel-Pereira-Linux/milizos/releases/latest">Baixar a ISO</a> ·
 <a href="https://milizos.com.br/">Site</a> ·
@@ -8,20 +8,22 @@
 <a href="docs/ARQUITETURA.md">Por baixo do capô</a> ·
 <a href="docs/ADMINISTRADOR.md">Administrador</a> ·
 <a href="CHANGELOG.md">O que mudou</a> ·
-<a href="CONTRIBUTING.md">Como colaborar</a>
+<a href="CONTRIBUTING.md">Como colaborar</a> ·
+<a href="https://github.com/Daniel-Pereira-Linux/milizos/issues/new/choose">Relatar um problema</a>
 </p>
 
 ---
 
-O Kali é feito para quem ataca. O **MilizOS** é feito para quem defende: uma distribuição
-baseada em Fedora, com instalador próprio, pensada para o analista de SOC, o time de
-resposta a incidentes e o engenheiro de redes.
+O **MilizOS** é uma distribuição Linux baseada em Fedora em que **a máquina inteira tem
+histórico**: sistema, arquivos pessoais e logs. Você pode mexer em qualquer coisa, e
+qualquer coisa volta a uma versão anterior, como em um repositório git: na sua máquina,
+tudo é commit. A versão 2.1.0 completa a comparação com ramos, bisect, blame, push, clone
+e pontos assinados.
 
-A ideia central: **um sistema totalmente gravável em que tudo tem história**. Você pode
-mexer em qualquer coisa, e qualquer coisa volta a uma versão anterior, como em um
-repositório git: na sua máquina, tudo é commit. A versão 2.1.0 completa a comparação com
-ramos, bisect, blame, push, clone e pontos assinados. Sem comandos próprios para decorar:
-as ferramentas são as originais. O que mudou em cada versão está no [CHANGELOG](CHANGELOG.md).
+O sistema é totalmente gravável e não tem comandos próprios para decorar: as ferramentas
+são as originais. Ele vem pronto para quem opera e defende redes, com ferramentas e perfis
+de instalação para SOC, engenharia de redes e sensor IDS. O que mudou em cada versão está
+no [CHANGELOG](CHANGELOG.md).
 
 | | |
 |---|---|
@@ -105,7 +107,10 @@ Disco, boot, snapshots, rede das caixas e atualização, explicados em
 
 O [manual](docs/MANUAL.md) descreve os dois em detalhe, incluindo os limites.
 
-## Ferramentas
+## Para quem opera e defende redes
+
+Três perfis na instalação (SOC, Engenharia de Redes e Sensor) e as ferramentas organizadas
+por função no menu do GNOME.
 
 | Categoria | Exemplos |
 |---|---|
@@ -140,10 +145,18 @@ Suite, por exemplo) roda em uma caixa Kali da Pandora.
 Requisitos: x86-64, 4 GB de RAM, 30 GB de disco.
 Para a Heloisa funcionar, mantenha o btrfs sugerido pelo instalador.
 
-## Colaborar
+## Colaborar e relatar problemas
 
-Adicionar uma ferramenta é editar uma linha; a Heloisa e a Pandora são Python com GTK4.
-O [guia de contribuição](CONTRIBUTING.md) tem a receita de cada um.
+- **Achou um problema ou testou em um computador real?**
+  [Abra uma issue](https://github.com/Daniel-Pereira-Linux/milizos/issues/new/choose): há
+  um formulário para cada caso.
+- **Vulnerabilidade de segurança?** Não abra issue pública; siga a
+  [política de segurança](SECURITY.md).
+- **Quer mexer no código?** Adicionar uma ferramenta é editar uma linha; a Heloisa e a
+  Pandora são Python com GTK4. O [guia de contribuição](CONTRIBUTING.md) tem a receita de
+  cada um.
+- **Quem cuida do quê** está em [MAINTAINERS](MAINTAINERS): um mantenedor geral e até
+  quatro mantenedores de área. Há vagas abertas.
 
 ## O que foi testado
 
@@ -155,8 +168,8 @@ em [docs/PROBLEMAS-CONHECIDOS.md](docs/PROBLEMAS-CONHECIDOS.md). Não foi testad
 
 ## Licença e avisos
 
-Código sob GPL-3.0-or-later; arte e identidade visual sob CC-BY-SA-4.0. Os pacotes
-incluídos na ISO mantêm as próprias licenças.
+Código sob [GPL-3.0-or-later](LICENSE); arte e identidade visual sob CC-BY-SA-4.0. Os
+pacotes incluídos na ISO mantêm as próprias licenças.
 
 O MilizOS é baseado no Fedora Linux, mas é um projeto independente, sem vínculo com o
 Projeto Fedora ou a Red Hat. Use as ferramentas de segurança apenas em sistemas e redes
@@ -169,6 +182,6 @@ O MilizOS é feito por uma pessoa só, no tempo livre. Se ele te ajudou, pague u
 
 ## Autor
 
-Criado por **Daniel Pereira da Silva**, mantenedor da documentação em português do kernel
-Linux ·
+Criado e mantido por **Daniel Pereira da Silva**, mantenedor geral do MilizOS e mantenedor
+da documentação em português do kernel Linux ·
 [linkedin.com/in/danielpereira-linux](https://www.linkedin.com/in/danielpereira-linux/)

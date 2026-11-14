@@ -1,0 +1,104 @@
+Mantenedores do MilizOS
+=======================
+
+Quem responde por cada parte do projeto. Antes de abrir um pull request, ache a
+área do arquivo que você mudou e marque o mantenedor dela na revisão.
+
+Regras
+------
+
+- O MilizOS tem no máximo CINCO mantenedores: o mantenedor geral e até quatro
+  mantenedores de área. As áreas abaixo são fixas; cada uma tem um mantenedor.
+- Área sem mantenedor (situação "Procura-se mantenedor") fica com o mantenedor
+  geral até alguém assumir.
+- O mantenedor de área faz a triagem das issues e revisa os pull requests da sua
+  área. A palavra final, em qualquer área, é do mantenedor geral.
+- Só o mantenedor geral gera a ISO, publica os pacotes no repositório de
+  atualização e lança versões.
+- Vira mantenedor de área quem já tem um histórico de contribuições aceitas
+  nela e recebe o convite do mantenedor geral. Não há candidatura por issue.
+- Mantenedor que ficar seis meses sem atividade na área devolve a vaga.
+
+Como ler
+--------
+
+  M: mantenedor (nome e conta no GitHub)
+  S: situação
+       Mantido                  tem mantenedor ativo
+       Procura-se mantenedor    vaga aberta; responde o mantenedor geral
+  E: etiqueta das issues da área
+  F: arquivos e pastas da área
+  X: arquivos e pastas que NÃO entram na área
+
+Áreas
+-----
+
+GERAL
+M:	Daniel Pereira da Silva (@Daniel-Pereira-Linux)
+S:	Mantido
+F:	*
+F:	packages/milizos-release/
+F:	docs/repo/
+F:	MAINTAINERS
+F:	SECURITY.md
+F:	.github/
+	Direção do projeto, versões, montagem da ISO, repositório de
+	atualização, política de segurança e tudo o que não pertence a outra
+	área. A montagem da ISO fica em repositório privado.
+
+HELOISA (MÁQUINA DO TEMPO)
+M:	vago
+S:	Procura-se mantenedor
+E:	heloisa
+F:	packages/milizos-tools/root/usr/lib/milizos/heloisa/
+F:	packages/milizos-tools/root/usr/libexec/milizos/heloisa-engine
+F:	packages/milizos-tools/root/usr/bin/heloisa
+F:	packages/milizos-tools/root/usr/lib/dracut/modules.d/90heloisa/
+F:	packages/milizos-tools/root/etc/grub.d/42_heloisa
+F:	packages/milizos-tools/root/etc/dnf/libdnf5-plugins/actions.d/heloisa.actions
+F:	packages/milizos-tools/root/usr/lib/systemd/system/heloisa-*
+F:	packages/milizos-tools/root/usr/share/polkit-1/actions/org.milizos.heloisa.policy
+F:	packages/milizos-tools/root/usr/share/applications/org.milizos.Heloisa.desktop
+F:	packages/milizos-tools/root/etc/xdg/autostart/org.milizos.Heloisa.aviso.desktop
+	Pontos, volta de arquivo, pasta e sistema, ramos, busca do que quebrou,
+	envio, clone, selo, alarme de ransomware, submenu do GRUB e resgate
+	pela mídia.
+
+PANDORA (CAIXAS LINUX)
+M:	vago
+S:	Procura-se mantenedor
+E:	pandora
+F:	packages/milizos-tools/root/usr/lib/milizos/pandora/
+F:	packages/milizos-tools/root/usr/libexec/milizos/pandora-enter
+F:	packages/milizos-tools/root/usr/bin/pandora
+F:	packages/milizos-tools/root/usr/lib/systemd/user/pandora-watch.service
+F:	packages/milizos-tools/root/usr/share/applications/org.milizos.Pandora.desktop
+	Caixas, modos de rede (isolada e ponte), atalhos automáticos, pontos
+	das caixas e a lista de distribuições oferecidas.
+
+INSTALADOR, PERFIS E FERRAMENTAS
+M:	vago
+S:	Procura-se mantenedor
+E:	instalador
+F:	packages/milizos-installer/
+F:	packages/milizos-tools/root/usr/share/milizos/catalog.json
+F:	packages/milizos-tools/root/usr/libexec/milizos/sensor-setup
+F:	packages/milizos-tools/root/usr/libexec/milizos/tool-shell
+F:	packages/milizos-tools/root/usr/lib/systemd/system/milizos-sensor-setup.service
+F:	packages/milizos-tools/root/usr/share/milizos/zshrc
+	Instalador gráfico e desassistido, modo live, perfis (SOC, Redes e
+	Sensor), catálogo de ferramentas do menu e relatos de hardware.
+
+DOCUMENTAÇÃO, SITE E IDENTIDADE VISUAL
+M:	vago
+S:	Procura-se mantenedor
+E:	documentation
+F:	docs/
+F:	README.md
+F:	CHANGELOG.md
+F:	CONTRIBUTING.md
+F:	branding/
+F:	packages/milizos-branding/
+X:	docs/repo/
+	Manual, guia do administrador, arquitetura, site (docs/index.html),
+	logo, papéis de parede, tema do GRUB e animação do boot.

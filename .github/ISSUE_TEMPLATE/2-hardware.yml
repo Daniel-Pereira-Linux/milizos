@@ -1,0 +1,74 @@
+name: Relato de teste em computador real
+description: Você rodou o MilizOS fora de máquina virtual. Conte o que funcionou e o que não, mesmo se deu tudo certo.
+title: "[Hardware] "
+labels: ["hardware"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        O MilizOS foi desenvolvido e testado em máquina virtual. Cada relato de computador real, bom ou ruim, entra na lista do que foi testado.
+  - type: input
+    id: maquina
+    attributes:
+      label: Computador
+      description: Fabricante e modelo. Para computador montado, a placa-mãe.
+      placeholder: Lenovo ThinkPad T14 Gen 3
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do MilizOS
+      placeholder: MilizOS 2.1.0 (Heloisa)
+    validations:
+      required: true
+  - type: textarea
+    id: pecas
+    attributes:
+      label: Processador, vídeo e rede
+      description: Saída de `fastfetch` e de `lspci -nnk | grep -A3 -E 'VGA|3D|Network|Ethernet'`.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: firmware
+    attributes:
+      label: Modo de inicialização
+      options:
+        - UEFI com Secure Boot ligado
+        - UEFI com Secure Boot desligado
+        - BIOS (legado)
+    validations:
+      required: true
+  - type: checkboxes
+    id: funcionou
+    attributes:
+      label: O que funcionou
+      description: Marque só o que você testou e funcionou.
+      options:
+        - label: Iniciar pela ISO (modo live)
+        - label: Instalar pelo instalador gráfico
+        - label: Instalar com disco cifrado (LUKS2)
+        - label: Primeiro boot do sistema instalado
+        - label: Vídeo (resolução certa, sem travar)
+        - label: Wi-Fi
+        - label: Rede cabeada
+        - label: Áudio
+        - label: Bluetooth
+        - label: Suspender e voltar
+        - label: Heloisa - criar ponto e voltar um arquivo
+        - label: Heloisa - voltar o sistema pelo menu do GRUB
+        - label: Pandora - criar uma caixa e abrir um programa dela
+  - type: textarea
+    id: falhou
+    attributes:
+      label: O que não funcionou
+      description: Para cada item, o que aconteceu e a mensagem de erro, se houver. Escreva "nada" se deu tudo certo.
+    validations:
+      required: true
+  - type: textarea
+    id: registros
+    attributes:
+      label: Registros
+      description: Se algo falhou, cole `systemctl --failed` e `journalctl -b -p err`. Leia antes de enviar; registros podem conter nomes de usuário e de máquina.
+      render: text

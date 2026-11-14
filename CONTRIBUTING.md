@@ -1,10 +1,12 @@
 # Como colaborar com o MilizOS
 
-Obrigado pelo interesse. O MilizOS é uma distribuição para quem defende redes, e toda
-contribuição que ajude um analista de SOC ou um engenheiro de redes a trabalhar melhor é
-bem-vinda: ferramentas, correções, traduções e documentação.
+Obrigado pelo interesse. O MilizOS é o Linux em que tudo é commit: a máquina inteira tem
+histórico e qualquer coisa volta a uma versão anterior. Toda contribuição que torne essa
+volta mais confiável, ou que ajude quem opera e defende redes a trabalhar melhor, é
+bem-vinda: correções, testes em computador real, ferramentas, traduções e documentação.
 
-Leia antes: [docs/ARQUITETURA.md](docs/ARQUITETURA.md) explica como tudo funciona por dentro.
+Leia antes: [docs/ARQUITETURA.md](docs/ARQUITETURA.md) explica como tudo funciona por
+dentro, e [MAINTAINERS](MAINTAINERS) diz quem responde por cada área.
 
 ## O que está neste repositório
 
@@ -19,8 +21,10 @@ parte deste repositório; para colaborar você não precisa dela.
    arquivo alterado por cima do instalado (os caminhos em `packages/*/root/` são os
    mesmos do sistema) e exercite o recurso.
 3. Abra o pull request explicando o problema que a mudança resolve e o que você testou.
-4. Depois do merge, o mantenedor gera o pacote e publica; a correção chega a todas as
-   máquinas pela atualização automática diária.
+   Ache em [MAINTAINERS](MAINTAINERS) a área dos arquivos que você mudou: o mantenedor
+   dela revisa, e a palavra final é do mantenedor geral.
+4. Depois do merge, o mantenedor geral gera o pacote e publica; a correção chega a todas
+   as máquinas pela atualização automática diária.
 
 Mudanças grandes (novo perfil, novo aplicativo, troca de base) merecem uma issue antes,
 para alinhar a ideia.
@@ -73,11 +77,26 @@ Cada uma é um `engine.py` (toda a lógica, sem interface) e um `gui.py` (GTK4/l
 
 ## Relatando problemas
 
-Abra uma issue com: versão (`cat /etc/os-release`), como reproduzir, o que esperava e o
-que aconteceu. Para falhas de instalação, anexe `/var/log/milizos-install.log`.
+[Abra uma issue](https://github.com/Daniel-Pereira-Linux/milizos/issues/new/choose) e
+escolha o formulário:
 
-**Vulnerabilidades de segurança**: não abra issue pública. Escreva em privado para o
-mantenedor pelo LinkedIn: https://www.linkedin.com/in/danielpereira-linux/
+- **Relatar um problema**: algo não funcionou. O formulário pede a versão, como reproduzir
+  e os registros (para falhas de instalação, `/var/log/milizos-install.log`).
+- **Relato de teste em computador real**: o MilizOS foi testado em máquina virtual, então
+  todo relato de hardware conta, inclusive quando deu tudo certo.
+- **Sugerir um recurso ou uma ferramenta**.
+
+Antes, confira [docs/PROBLEMAS-CONHECIDOS.md](docs/PROBLEMAS-CONHECIDOS.md): o limite que
+você encontrou pode já estar listado.
+
+**Vulnerabilidades de segurança**: não abra issue pública. O caminho privado está em
+[SECURITY.md](SECURITY.md).
+
+## Mantenedores
+
+O projeto tem um mantenedor geral e até quatro mantenedores de área (Heloisa, Pandora,
+instalador e documentação). As regras e as vagas abertas estão em
+[MAINTAINERS](MAINTAINERS).
 
 ## Licença
 
@@ -86,4 +105,4 @@ CC-BY-SA-4.0, as mesmas licenças do projeto.
 
 ---
 
-MilizOS foi criado por **Daniel Pereira da Silva**.
+MilizOS foi criado por **Daniel Pereira da Silva**, mantenedor geral do projeto.
