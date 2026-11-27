@@ -90,8 +90,8 @@ F:	packages/milizos-tools/root/usr/share/milizos/zshrc
 	Sensor), catálogo de ferramentas do menu e relatos de hardware.
 
 DOCUMENTAÇÃO, SITE E IDENTIDADE VISUAL
-M:	vago
-S:	Procura-se mantenedor
+M:	Igor Giamoniano (@igorgbr)
+S:	Mantido
 E:	documentation
 F:	docs/
 F:	README.md

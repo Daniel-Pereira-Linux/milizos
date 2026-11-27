@@ -17,6 +17,7 @@
 /packages/milizos-tools/root/usr/share/milizos/           @Daniel-Pereira-Linux
 
 # Documentação, site e identidade visual
-/docs/                                                    @Daniel-Pereira-Linux
-/branding/                                                @Daniel-Pereira-Linux
-/packages/milizos-branding/                               @Daniel-Pereira-Linux
+/docs/                                                    @Daniel-Pereira-Linux @igorgbr
+/branding/                                                @Daniel-Pereira-Linux @igorgbr
+/packages/milizos-branding/                               @Daniel-Pereira-Linux @igorgbr
+/docs/repo/                                               @Daniel-Pereira-Linux
